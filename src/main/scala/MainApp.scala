@@ -34,6 +34,14 @@ object MainApp extends JFXApp3 {
     mediaView.fitWidthProperty().bind(root.widthProperty())
     mediaView.fitHeightProperty().bind(root.heightProperty())
 
+    // Create a semi-transparent overlay
+    val overlay = new Rectangle {
+      width <== root.widthProperty()
+      height <== root.heightProperty()
+      fill = Color.rgb(0, 0, 0, 0.5)
+    }
+    root.getChildren.add(overlay) // Add overlay to the root layout
+
     stage = new PrimaryStage() {
       title = "Main Menu"
       scene = new Scene(new AnchorPane(root), 600, 400)
