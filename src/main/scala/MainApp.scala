@@ -7,6 +7,8 @@ import scalafx.application.JFXApp3
 import scalafx.application.JFXApp3.PrimaryStage
 import scalafx.scene.Scene
 import scalafx.scene.layout.AnchorPane
+import scalafx.scene.paint.Color
+import scalafx.scene.shape.Rectangle
 
 object MainApp extends JFXApp3 {
   override def start(): Unit = {
@@ -17,17 +19,20 @@ object MainApp extends JFXApp3 {
 
     val loader = new FXMLLoader(mainMenu)
     val root: javafx.scene.layout.AnchorPane = loader.load()
+    val mediaView: MediaView = loader.getNamespace.get("mediaView").asInstanceOf[MediaView]
 
     val mediaUrl = getClass.getResource("/videos/background.mp4")
     if (mediaUrl == null) throw new RuntimeException("Video file not found!")
 
     val media = new Media(mediaUrl.toExternalForm)
     val mediaPlayer = new MediaPlayer(media)
-    val mediaView = new MediaView(mediaPlayer)
+    mediaView.setMediaPlayer(mediaPlayer)
     mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE) // Loop the video
     mediaPlayer.play()
 
-    root.getChildren.add(mediaView) // Add MediaView to the root layout
+    // Bind MediaView size to AnchorPane size
+    mediaView.fitWidthProperty().bind(root.widthProperty())
+    mediaView.fitHeightProperty().bind(root.heightProperty())
 
     stage = new PrimaryStage() {
       title = "Main Menu"
