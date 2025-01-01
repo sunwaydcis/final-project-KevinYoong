@@ -1,26 +1,31 @@
 package checkers
 
-import java.util.logging.{ConsoleHandler, Level, Logger, SimpleFormatter}
 import javafx.fxml.FXMLLoader
 import javafx.scene.media.{Media, MediaPlayer, MediaView}
 import scalafx.application.JFXApp3
 import scalafx.application.JFXApp3.PrimaryStage
 import scalafx.scene.Scene
-import scalafx.scene.layout.AnchorPane
-import scalafx.scene.paint.Color
-import scalafx.scene.shape.Rectangle
+import scalafx.scene.layout.{BorderPane, GridPane, StackPane}
 
 object MainApp extends JFXApp3 {
   override def start(): Unit = {
-    val mainMenu = getClass.getResource("/view/MainMenu.fxml")
-    if (mainMenu == null) {
-      throw new RuntimeException("MainMenu.fxml not found")
+    // Load RootLayout.fxml
+    val rootLayoutUrl = getClass.getResource("/view/RootLayout.fxml")
+    if (rootLayoutUrl == null) {
+      throw new RuntimeException("RootLayout.fxml not found")
     }
 
-    val loader = new FXMLLoader(mainMenu)
-    val root: javafx.scene.layout.AnchorPane = loader.load()
-    val mediaView: MediaView = loader.getNamespace.get("mediaView").asInstanceOf[MediaView]
+    val rootLoader = new FXMLLoader(rootLayoutUrl)
+    val root: javafx.scene.layout.BorderPane = rootLoader.load()
+    val mediaView: MediaView = rootLoader.getNamespace.get("mediaView").asInstanceOf[MediaView]
+    val mainMenuContainer: javafx.scene.layout.GridPane = rootLoader.getNamespace.get("mainMenuContainer").asInstanceOf[javafx.scene.layout.GridPane]
 
+    // Bind MediaView size to StackPane size
+    val stackPane: javafx.scene.layout.StackPane = mediaView.getParent.asInstanceOf[javafx.scene.layout.StackPane]
+    mediaView.fitWidthProperty().bind(stackPane.widthProperty())
+    mediaView.fitHeightProperty().bind(stackPane.heightProperty())
+
+    // Load and play background video
     val mediaUrl = getClass.getResource("/videos/background.mp4")
     if (mediaUrl == null) throw new RuntimeException("Video file not found!")
 
@@ -30,21 +35,20 @@ object MainApp extends JFXApp3 {
     mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE) // Loop the video
     mediaPlayer.play()
 
-    // Bind MediaView size to AnchorPane size
-    mediaView.fitWidthProperty().bind(root.widthProperty())
-    mediaView.fitHeightProperty().bind(root.heightProperty())
-
-    // Create a semi-transparent overlay
-    val overlay = new Rectangle {
-      width <== root.widthProperty()
-      height <== root.heightProperty()
-      fill = Color.rgb(0, 0, 0, 0.5)
+    // Load MainMenu.fxml and add it to the mainMenuContainer
+    val mainMenuUrl = getClass.getResource("/view/MainMenu.fxml")
+    if (mainMenuUrl == null) {
+      throw new RuntimeException("MainMenu.fxml not found")
     }
-    root.getChildren.add(overlay) // Add overlay to the root layout
 
+    val mainMenuLoader = new FXMLLoader(mainMenuUrl)
+    val mainMenu: javafx.scene.layout.GridPane = mainMenuLoader.load()
+    mainMenuContainer.getChildren.add(mainMenu)
+
+    // Set up the primary stage
     stage = new PrimaryStage() {
       title = "Main Menu"
-      scene = new Scene(new AnchorPane(root), 600, 400)
+      scene = new Scene(new BorderPane(root), 600, 400)
     }
   }
 }
