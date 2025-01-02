@@ -1,10 +1,11 @@
 package checkers.view
 
+import checkers.MainApp
 import javafx.fxml.{FXML, FXMLLoader}
 import javafx.scene.control.Button
-import javafx.scene.layout.{VBox, BorderPane, StackPane, GridPane}
+import javafx.scene.layout.{BorderPane, GridPane, StackPane, VBox}
 import javafx.scene.media.{Media, MediaPlayer, MediaView}
-import javafx.scene.{Scene, Parent}
+import javafx.scene.{Parent, Scene}
 import javafx.stage.{Modality, Stage}
 import scalafx.application.Platform
 
@@ -45,16 +46,14 @@ class MainMenuController {
 
   @FXML
   def handlePlayAgainstAI(): Unit = {
-    // Load the color selection page
-    val loader = new FXMLLoader(getClass.getResource("/view/ColorSelection.fxml"))
-    val colorSelectionPane = loader.load[VBox]()
-
-    // Create a new stage for the color selection dialog
-    val dialogStage = new Stage()
-    dialogStage.initOwner(playAgainstAIButton.getScene.getWindow)
-    dialogStage.initModality(Modality.WINDOW_MODAL)
-    dialogStage.setScene(new Scene(colorSelectionPane))
-    dialogStage.showAndWait()
+    val okClicked = MainApp.showColourSelectionDialog()
+    if (okClicked) {
+      // Logic to move to the game scene
+      println("Color selected, moving to game scene")
+    } else {
+      // Logic to stay in the main menu
+      println("Color selection canceled, staying in main menu")
+    }
   }
 
   @FXML
