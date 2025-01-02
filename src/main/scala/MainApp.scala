@@ -1,12 +1,10 @@
 package checkers
 
 import javafx.fxml.FXMLLoader
+import scalafx.Includes.*
 import scalafx.application.JFXApp3
 import scalafx.application.JFXApp3.PrimaryStage
 import scalafx.scene.Scene
-import scalafx.scene.layout.{BorderPane, StackPane}
-import scalafx.Includes.*
-import scalafx.scene.media.MediaView
 
 object MainApp extends JFXApp3 {
 
