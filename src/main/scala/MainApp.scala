@@ -51,4 +51,16 @@ object MainApp extends JFXApp3 {
     dialog.showAndWait()
     control.okClicked
   }
+
+  def showCheckersBoard(): Unit = {
+    val resource = getClass.getResource("/view/CheckersBoard.fxml")
+    if (resource == null) {
+      throw new RuntimeException("CheckersBoard.fxml not found")
+    }
+    val loader = new FXMLLoader(resource)
+    loader.load()
+    val root = loader.getRoot[Parent]
+    stage.setScene(new Scene(root))
+    stage.setTitle("Checkers Game")
+  }
 }

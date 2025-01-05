@@ -50,6 +50,7 @@ class MainMenuController {
     if (okClicked) {
       // Logic to move to the game scene
       println("Color selected, moving to game scene")
+      MainApp.showCheckersBoard()
     } else {
       // Logic to stay in the main menu
       println("Color selection canceled, staying in main menu")
