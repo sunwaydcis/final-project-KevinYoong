@@ -14,6 +14,12 @@ class CheckersBoardController {
   @FXML private var boardGrid: GridPane = _
   @FXML private var pauseButton: Button = _
 
+  private var selectedColor: String = _
+
+  def setSelectedColor(color: String): Unit = {
+    selectedColor = color
+  }
+
   @FXML
   private def initialize(): Unit = {
     // Initialize the checkers board
@@ -26,14 +32,25 @@ class CheckersBoardController {
     initializePieces()
   }
 
-  private def initializePieces(): Unit = {
-    for (row <- 0 until 3; col <- 0 until 8 if (row + col) % 2 != 0) {
-      val piece = new ImageView(new javafx.scene.image.Image(getClass.getResourceAsStream("/images/black_standard.png")))
-      boardGrid.add(piece, col, row)
-    }
-    for (row <- 5 until 8; col <- 0 until 8 if (row + col) % 2 != 0) {
-      val piece = new ImageView(new javafx.scene.image.Image(getClass.getResourceAsStream("/images/white_standard.png")))
-      boardGrid.add(piece, col, row)
+  def initializePieces(): Unit = {
+    if (selectedColor == "white") {
+      for (row <- 0 until 3; col <- 0 until 8 if (row + col) % 2 != 0) {
+        val piece = new ImageView(new javafx.scene.image.Image(getClass.getResourceAsStream("/images/black_standard.png")))
+        boardGrid.add(piece, col, row)
+      }
+      for (row <- 5 until 8; col <- 0 until 8 if (row + col) % 2 != 0) {
+        val piece = new ImageView(new javafx.scene.image.Image(getClass.getResourceAsStream("/images/white_standard.png")))
+        boardGrid.add(piece, col, row)
+      }
+    } else {
+      for (row <- 0 until 3; col <- 0 until 8 if (row + col) % 2 != 0) {
+        val piece = new ImageView(new javafx.scene.image.Image(getClass.getResourceAsStream("/images/white_standard.png")))
+        boardGrid.add(piece, col, row)
+      }
+      for (row <- 5 until 8; col <- 0 until 8 if (row + col) % 2 != 0) {
+        val piece = new ImageView(new javafx.scene.image.Image(getClass.getResourceAsStream("/images/black_standard.png")))
+        boardGrid.add(piece, col, row)
+      }
     }
   }
 

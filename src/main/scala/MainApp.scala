@@ -11,6 +11,8 @@ import scalafx.stage.{Modality, Stage}
 
 object MainApp extends JFXApp3 {
 
+  private var selectedColor: String = _
+
   override def start(): Unit = {
     // Load MainMenu.fxml
     val resource = getClass.getResource("/view/MainMenu.fxml")
@@ -27,7 +29,6 @@ object MainApp extends JFXApp3 {
       scene = new Scene(roots)
     }
   }
-
 
   def showColourSelectionDialog(): Boolean = {
     val resource = getClass.getResource("/view/ColourSelectionDialog.fxml")
@@ -49,6 +50,7 @@ object MainApp extends JFXApp3 {
 
     control.dialogStage = dialog
     dialog.showAndWait()
+    selectedColor = control.getSelectedColor
     control.okClicked
   }
 
@@ -60,6 +62,9 @@ object MainApp extends JFXApp3 {
     val loader = new FXMLLoader(resource)
     loader.load()
     val root = loader.getRoot[Parent]
+    val controller = loader.getController[checkers.view.CheckersBoardController]
+    controller.setSelectedColor(selectedColor)
+    controller.initializePieces()
     stage.setScene(new Scene(root))
     stage.setTitle("Checkers Game")
   }

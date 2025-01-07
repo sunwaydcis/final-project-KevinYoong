@@ -47,4 +47,6 @@ class ColourSelectionDialogController {
     okClicked = false
     dialogStage.close()
   }
+  
+  def getSelectedColor: String = selectedColor
 }
