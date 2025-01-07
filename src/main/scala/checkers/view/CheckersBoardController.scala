@@ -1,11 +1,12 @@
 package checkers.view
 
+import checkers.MainApp
 import javafx.fxml.FXML
 import javafx.scene.control.Button
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.StackPane
 import javafx.stage.Stage
-import javafx.scene.Parent
+import javafx.scene.{Parent, Scene}
 import javafx.fxml.FXMLLoader
 import javafx.scene.image.ImageView
 
@@ -60,8 +61,17 @@ class CheckersBoardController {
 
   @FXML
   private def openPauseMenu(): Unit = {
-    // Handle the pause button action
-    println("Pause button clicked")
-    // TBA
+    val resource = getClass.getResource("/view/PauseScreen.fxml")
+    if (resource == null) {
+      throw new RuntimeException("PauseScreen.fxml not found")
+    }
+    val loader = new FXMLLoader(resource)
+    val root = loader.load[Parent]()
+    val controller = loader.getController[PauseScreenController]
+    val dialog = new Stage()
+    dialog.initOwner(pauseButton.getScene.getWindow)
+    dialog.setScene(new Scene(root))
+    controller.dialogStage = dialog
+    dialog.showAndWait()
   }
 }
