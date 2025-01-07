@@ -1,7 +1,8 @@
 package checkers.view
 
 import javafx.fxml.FXML
-import javafx.scene.control.Button
+import javafx.scene.control.Alert.AlertType
+import javafx.scene.control.{Alert, Button}
 import javafx.stage.Stage
 import javafx.scene.image.{Image, ImageView}
 
@@ -39,14 +40,22 @@ class ColourSelectionDialogController {
   }
 
   def handleOk(): Unit = {
-    okClicked = true
-    dialogStage.close()
+    if (selectedColor == null) {
+      val alert = new Alert(AlertType.ERROR)
+      alert.initOwner(dialogStage)
+      alert.setTitle("No Color Selected")
+      alert.setContentText("Please select a color before pressing OK.")
+      alert.showAndWait()
+    } else {
+      okClicked = true
+      dialogStage.close()
+    }
   }
 
   def handleCancel(): Unit = {
     okClicked = false
     dialogStage.close()
   }
-  
+
   def getSelectedColor: String = selectedColor
 }
