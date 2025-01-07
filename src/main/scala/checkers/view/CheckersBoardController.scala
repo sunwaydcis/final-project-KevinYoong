@@ -7,6 +7,7 @@ import javafx.scene.layout.StackPane
 import javafx.stage.Stage
 import javafx.scene.Parent
 import javafx.fxml.FXMLLoader
+import javafx.scene.image.ImageView
 
 class CheckersBoardController {
 
@@ -21,13 +22,19 @@ class CheckersBoardController {
       cell.setStyle(if ((row + col) % 2 == 0) "-fx-background-color: white;" else "-fx-background-color: black;")
       boardGrid.add(cell, col, row)
     }
+    // Initialize the pieces
+    initializePieces()
   }
 
-  @FXML
-  private def handleCheckersBoard(): Unit = {
-    // Handle state of checkers board
-
-    // TBA
+  private def initializePieces(): Unit = {
+    for (row <- 0 until 3; col <- 0 until 8 if (row + col) % 2 != 0) {
+      val piece = new ImageView(new javafx.scene.image.Image(getClass.getResourceAsStream("/images/black_standard.png")))
+      boardGrid.add(piece, col, row)
+    }
+    for (row <- 5 until 8; col <- 0 until 8 if (row + col) % 2 != 0) {
+      val piece = new ImageView(new javafx.scene.image.Image(getClass.getResourceAsStream("/images/white_standard.png")))
+      boardGrid.add(piece, col, row)
+    }
   }
 
   @FXML

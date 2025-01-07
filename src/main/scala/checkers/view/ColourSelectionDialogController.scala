@@ -23,8 +23,8 @@ class ColourSelectionDialogController {
     blackButton.setOnAction(_ => handleColorSelection("black"))
     cancelButton.setOnAction(_ => handleCancel())
 
-    whiteStandard.setImage(new javafx.scene.image.Image(getClass.getResourceAsStream("/images/whitestandard.png")))
-    blackStandard.setImage(new javafx.scene.image.Image(getClass.getResourceAsStream("/images/blackstandard.png")))
+    whiteStandard.setImage(new javafx.scene.image.Image(getClass.getResourceAsStream("/images/white_standard.png")))
+    blackStandard.setImage(new javafx.scene.image.Image(getClass.getResourceAsStream("/images/black_standard.png")))
   }
 
   private def handleColorSelection(color: String): Unit = {
