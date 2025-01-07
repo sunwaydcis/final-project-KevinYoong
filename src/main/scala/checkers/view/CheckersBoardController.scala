@@ -36,20 +36,24 @@ class CheckersBoardController {
     if (selectedColor == "white") {
       for (row <- 0 until 3; col <- 0 until 8 if (row + col) % 2 != 0) {
         val piece = new ImageView(new javafx.scene.image.Image(getClass.getResourceAsStream("/images/black_standard.png")))
-        boardGrid.add(piece, col, row)
+        val cell = new StackPane(piece)
+        boardGrid.add(cell, col, row)
       }
       for (row <- 5 until 8; col <- 0 until 8 if (row + col) % 2 != 0) {
         val piece = new ImageView(new javafx.scene.image.Image(getClass.getResourceAsStream("/images/white_standard.png")))
-        boardGrid.add(piece, col, row)
+        val cell = new StackPane(piece)
+        boardGrid.add(cell, col, row)
       }
     } else {
       for (row <- 0 until 3; col <- 0 until 8 if (row + col) % 2 != 0) {
         val piece = new ImageView(new javafx.scene.image.Image(getClass.getResourceAsStream("/images/white_standard.png")))
-        boardGrid.add(piece, col, row)
+        val cell = new StackPane(piece)
+        boardGrid.add(cell, col, row)
       }
       for (row <- 5 until 8; col <- 0 until 8 if (row + col) % 2 != 0) {
         val piece = new ImageView(new javafx.scene.image.Image(getClass.getResourceAsStream("/images/black_standard.png")))
-        boardGrid.add(piece, col, row)
+        val cell = new StackPane(piece)
+        boardGrid.add(cell, col, row)
       }
     }
   }
