@@ -1,20 +1,22 @@
 package checkers.view
 
-import checkers.MainApp
 import javafx.fxml.FXML
 import javafx.scene.control.Button
 import javafx.scene.layout.GridPane
-import javafx.scene.layout.StackPane
-import javafx.stage.Stage
-import javafx.scene.{Parent, Scene}
-import javafx.fxml.FXMLLoader
 import javafx.scene.image.ImageView
+import javafx.scene.input.MouseEvent
+import javafx.fxml.FXMLLoader
+import javafx.scene.Parent
+import javafx.stage.Stage
+import javafx.scene.Scene
 
 class CheckersBoardController {
 
   @FXML private var boardGrid: GridPane = _
   @FXML private var pauseButton: Button = _
-
+  private var selectedPiece: ImageView = _
+  private var selectedPieceRow: Int = _
+  private var selectedPieceCol: Int = _
   private var selectedColor: String = _
 
   def setSelectedColor(color: String): Unit = {
@@ -23,38 +25,70 @@ class CheckersBoardController {
 
   @FXML
   private def initialize(): Unit = {
-    // Initialize the checkers board
-    for (row <- 0 until 8; col <- 0 until 8) {
-      val cell = new StackPane()
-      cell.setStyle(if ((row + col) % 2 == 0) "-fx-background-color: white;" else "-fx-background-color: black;")
-      boardGrid.add(cell, col, row)
-    }
     // Initialize the pieces
     initializePieces()
+    // Set up event handlers for buttons
+    boardGrid.getChildren.forEach {
+      case button: Button =>
+        button.setOnMouseClicked((event: MouseEvent) => handleCheckersMovement(event))
+      case _ =>
+    }
   }
 
   def initializePieces(): Unit = {
-    if (selectedColor == "white") {
-      for (row <- 0 until 3; col <- 0 until 8 if (row + col) % 2 != 0) {
-        val piece = new ImageView(new javafx.scene.image.Image(getClass.getResourceAsStream("/images/black_standard.png")))
-        val cell = new StackPane(piece)
-        boardGrid.add(cell, col, row)
-      }
-      for (row <- 5 until 8; col <- 0 until 8 if (row + col) % 2 != 0) {
-        val piece = new ImageView(new javafx.scene.image.Image(getClass.getResourceAsStream("/images/white_standard.png")))
-        val cell = new StackPane(piece)
-        boardGrid.add(cell, col, row)
+    val blackPieceImage = new javafx.scene.image.Image(getClass.getResourceAsStream("/images/black_standard.png"))
+    val whitePieceImage = new javafx.scene.image.Image(getClass.getResourceAsStream("/images/white_standard.png"))
+
+    boardGrid.getChildren.forEach {
+      case button: Button =>
+        val row = GridPane.getRowIndex(button)
+        val col = GridPane.getColumnIndex(button)
+        if ((row + col) % 2 != 0) {
+          if (selectedColor == "white") {
+            if (row < 3) {
+              button.setGraphic(new ImageView(blackPieceImage))
+            } else if (row > 4) {
+              button.setGraphic(new ImageView(whitePieceImage))
+            }
+          } else {
+            if (row < 3) {
+              button.setGraphic(new ImageView(whitePieceImage))
+            } else if (row > 4) {
+              button.setGraphic(new ImageView(blackPieceImage))
+            }
+          }
+        }
+      case _ =>
+    }
+  }
+
+  @FXML
+  private def handleCheckersMovement(event: MouseEvent): Unit = {
+    val button = event.getSource.asInstanceOf[Button]
+    val row = GridPane.getRowIndex(button)
+    val col = GridPane.getColumnIndex(button)
+    if (selectedPiece == null) {
+      // Select a piece
+      if (button.getGraphic != null && button.getGraphic.isInstanceOf[ImageView]) {
+        selectedPiece = button.getGraphic.asInstanceOf[ImageView]
+        selectedPieceRow = row
+        selectedPieceCol = col
+        println(s"Selected piece at row: $selectedPieceRow, col: $selectedPieceCol")
       }
     } else {
-      for (row <- 0 until 3; col <- 0 until 8 if (row + col) % 2 != 0) {
-        val piece = new ImageView(new javafx.scene.image.Image(getClass.getResourceAsStream("/images/white_standard.png")))
-        val cell = new StackPane(piece)
-        boardGrid.add(cell, col, row)
-      }
-      for (row <- 5 until 8; col <- 0 until 8 if (row + col) % 2 != 0) {
-        val piece = new ImageView(new javafx.scene.image.Image(getClass.getResourceAsStream("/images/black_standard.png")))
-        val cell = new StackPane(piece)
-        boardGrid.add(cell, col, row)
+      // Move the selected piece
+      if (button.getGraphic == null) {
+        button.setGraphic(new ImageView(selectedPiece.getImage))
+        val filteredList = boardGrid.getChildren
+          .filtered(node => GridPane.getRowIndex(node) == selectedPieceRow && GridPane.getColumnIndex(node) == selectedPieceCol)
+        if (!filteredList.isEmpty) {
+          val oldButton = filteredList.get(0).asInstanceOf[Button]
+          oldButton.setGraphic(null)
+          println(s"Moved piece to row: $row, col: $col")
+          selectedPiece = null
+        } else {
+          throw new RuntimeException(s"No button found at row $selectedPieceRow, col $selectedPieceCol")
+        }
       }
     }
   }
