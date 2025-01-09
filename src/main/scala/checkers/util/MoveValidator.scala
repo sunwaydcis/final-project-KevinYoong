@@ -1,5 +1,6 @@
 package checkers.util
 
+import checkers.MainApp
 import checkers.model.{Board, PieceColor}
 
 object MoveValidator {
@@ -19,11 +20,15 @@ object MoveValidator {
     val colDiff = Math.abs(endCol - startCol)
 
     // Determine if the move is forward based on the current player's perspective
-    val isForwardMove = (pieceColor, currentTurn) match {
-      case ("White", PieceColor.White) => endRow > startRow // White moves upwards (from bottom to top)
-      case ("Black", PieceColor.Black) => endRow < startRow // Black moves downwards (from top to bottom)
+    val isForwardMove = (pieceColor, currentTurn, MainApp.getSelectedColor()) match {
+      case ("White", PieceColor.White, "White") => endRow < startRow // White moves upwards
+      case ("Black", PieceColor.Black, "White") => endRow > startRow // Black moves downwards
+      case ("White", PieceColor.White, "Black") => endRow > startRow // White moves downwards
+      case ("Black", PieceColor.Black, "Black") => endRow < startRow // Black moves upwards
       case _ => false
     }
+
+
 
     // Check if the move is a valid diagonal move with the right distance
     if (isForwardMove && rowDiff == colDiff && rowDiff <= 2) {
