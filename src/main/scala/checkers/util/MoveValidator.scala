@@ -3,7 +3,14 @@ package checkers.util
 import checkers.model.{Board, PieceColor}
 
 object MoveValidator {
+
   def isValidMove(startRow: Int, startCol: Int, endRow: Int, endCol: Int, board: Board, pieceColor: String, currentTurn: PieceColor.Value): Boolean = {
+    // Ensure the move stays within the board boundaries
+    if (!isWithinBounds(endRow, endCol)) {
+      return false
+    }
+
+    // Check if the piece color matches the current turn
     if (PieceColor.withName(pieceColor) != currentTurn) {
       return false
     }
@@ -11,16 +18,20 @@ object MoveValidator {
     val rowDiff = Math.abs(endRow - startRow)
     val colDiff = Math.abs(endCol - startCol)
 
-    val isForwardMove = pieceColor match {
-      case "White" => endRow > startRow
-      case "Black" => endRow < startRow
+    // Determine if the move is forward based on the current player's perspective
+    val isForwardMove = (pieceColor, currentTurn) match {
+      case ("White", PieceColor.White) => endRow > startRow // White moves upwards (from bottom to top)
+      case ("Black", PieceColor.Black) => endRow < startRow // Black moves downwards (from top to bottom)
       case _ => false
     }
 
+    // Check if the move is a valid diagonal move with the right distance
     if (isForwardMove && rowDiff == colDiff && rowDiff <= 2) {
       if (rowDiff == 1) {
+        // Regular move (not a jump)
         board.getPiece(endRow, endCol).isEmpty
       } else if (rowDiff == 2) {
+        // Jump move (captures an opponent's piece)
         val middleRow = (startRow + endRow) / 2
         val middleCol = (startCol + endCol) / 2
         board.getPiece(middleRow, middleCol).exists(_.color != PieceColor.withName(pieceColor)) &&
@@ -31,5 +42,27 @@ object MoveValidator {
     } else {
       false
     }
+  }
+
+  def getValidMoves(startRow: Int, startCol: Int, board: Board, pieceColor: String, currentTurn: PieceColor.Value): List[(Int, Int)] = {
+    // Possible movement directions for the piece (diagonals)
+    val directions = List((-1, -1), (-1, 1), (1, -1), (1, 1)) // Add more directions if necessary for kings
+
+    directions.flatMap { case (rowOffset, colOffset) =>
+      val potentialMoves = List(
+        (startRow + rowOffset, startCol + colOffset), // Regular move
+        (startRow + 2 * rowOffset, startCol + 2 * colOffset) // Jump move
+      )
+
+      // Filter valid moves using isValidMove and ensure moves are within bounds
+      potentialMoves.filter { case (endRow, endCol) =>
+        isWithinBounds(endRow, endCol) &&
+          isValidMove(startRow, startCol, endRow, endCol, board, pieceColor, currentTurn)
+      }
+    }
+  }
+
+  private def isWithinBounds(row: Int, col: Int): Boolean = {
+    row >= 0 && row < 8 && col >= 0 && col < 8
   }
 }
