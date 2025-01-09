@@ -14,10 +14,15 @@
                 <Button fx:id="cancelButton" mnemonicParsing="false" onAction="#handleCancel" text="Cancel" />
             </buttons>
         </ButtonBar>
-      <Text layoutX="147.0" layoutY="51.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Choose your piece" />
-      <Button fx:id="whiteButton" layoutX="93.0" layoutY="142.0" mnemonicParsing="false" text="White" />
-      <Button fx:id="blackButton" layoutX="248.0" layoutY="142.0" mnemonicParsing="false" text="Black" />
-      <ImageView fx:id="whiteStandard" fitHeight="70.0" fitWidth="79.0" layoutX="78.0" layoutY="72.0" pickOnBounds="true" preserveRatio="true" />
-      <ImageView fx:id="blackStandard" fitHeight="70.0" fitWidth="79.0" layoutX="232.0" layoutY="72.0" pickOnBounds="true" preserveRatio="true" />
+      <Text layoutX="176.0" layoutY="34.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Player 1" />
+      <Text layoutX="147.0" layoutY="51.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Choose Your Piece" />
+      <Button fx:id="whiteButton" contentDisplay="TOP" layoutX="60.0" layoutY="72.0" mnemonicParsing="false" prefHeight="96.0" prefWidth="116.0" text="White" textAlignment="CENTER">
+         <graphic>
+            <ImageView fx:id="whiteStandard" fitHeight="70.0" fitWidth="79.0" pickOnBounds="true" preserveRatio="true" />
+         </graphic></Button>
+      <Button fx:id="blackButton" contentDisplay="TOP" layoutX="218.0" layoutY="72.0" mnemonicParsing="false" prefHeight="100.0" prefWidth="116.0" text="Black">
+         <graphic>
+            <ImageView fx:id="blackStandard" fitHeight="70.0" fitWidth="79.0" pickOnBounds="true" preserveRatio="true" />
+         </graphic></Button>
     </children>
 </AnchorPane>
