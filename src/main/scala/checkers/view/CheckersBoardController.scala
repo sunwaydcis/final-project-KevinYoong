@@ -117,40 +117,42 @@ class CheckersBoardController {
       case _ =>
     }
 
-    // If no piece is selected, select a piece of the current player's color
-    if (selectedPiece == null) {
-      pieceMap.get(button).flatMap { case (r, c) => board.getPiece(r, c) }.foreach { piece =>
-        if (piece.color == currentPlayer.color) {
-          selectedPiece = piece
-          selectedPieceRow = row
-          selectedPieceCol = col
-          println(s"Selected ${selectedPiece.color} piece at row: $selectedPieceRow, col: $selectedPieceCol")
+    // Get the piece associated with the clicked button
+    pieceMap.get(button).flatMap { case (r, c) => board.getPiece(r, c) }.foreach { piece =>
+      if (piece.color == currentPlayer.color) {
+        // Update the selected piece regardless of whether a piece was already selected
+        selectedPiece = piece
+        selectedPieceRow = row
+        selectedPieceCol = col
+        println(s"Selected ${selectedPiece.color} piece at row: $selectedPieceRow, col: $selectedPieceCol")
 
-          // Highlight valid moves for the selected piece
-          val validMoves = MoveValidator.getValidMoves(selectedPieceRow, selectedPieceCol, board, selectedPiece.color.toString, currentPlayer.color)
-          validMoves.foreach { case (validRow, validCol) =>
-            val validButton = boardGrid.getChildren
-              .filtered(node => Option(GridPane.getRowIndex(node)).map(_.intValue()).getOrElse(0) == validRow && Option(GridPane.getColumnIndex(node)).map(_.intValue()).getOrElse(0) == validCol)
-              .get(0).asInstanceOf[Button]
-            highlightValidMove(validButton)
-          }
-        } else {
-          println(s"It's ${currentPlayer.name}'s turn")
+        // Highlight valid moves for the newly selected piece
+        val validMoves = MoveValidator.getValidMoves(selectedPieceRow, selectedPieceCol, board, selectedPiece.color.toString, currentPlayer.color)
+        validMoves.foreach { case (validRow, validCol) =>
+          val validButton = boardGrid.getChildren
+            .filtered(node => Option(GridPane.getRowIndex(node)).map(_.intValue()).getOrElse(0) == validRow && Option(GridPane.getColumnIndex(node)).map(_.intValue()).getOrElse(0) == validCol)
+            .get(0).asInstanceOf[Button]
+          highlightValidMove(validButton)
         }
+        return // Exit early if a piece was selected
       }
-    } else {
-      // After selecting a piece, move it if valid
+    }
+
+    // If no valid piece was selected but a piece is already selected, attempt to move it
+    if (selectedPiece != null) {
       if (MoveValidator.isValidMove(selectedPieceRow, selectedPieceCol, row, col, board, selectedPiece.color.toString, currentPlayer.color)) {
         board.movePiece(selectedPieceRow, selectedPieceCol, row, col)
         board.handleJump(selectedPieceRow, selectedPieceCol, row, col)
         updateBoardVisuals(selectedPieceRow, selectedPieceCol, row, col)
-        selectedPiece = null // Allow the player to select another piece after move
+        selectedPiece = null // Reset the selection to allow new selections
         switchTurn()
         println(s"It's now ${currentPlayer.name}'s turn")
         checkForLoss()
       } else {
         println("Invalid move or destination occupied")
       }
+    } else {
+      println("No piece selected or invalid selection")
     }
   }
 
