@@ -1,5 +1,7 @@
 package checkers.model
 
+import checkers.MainApp
+
 import scala.collection.mutable
 
 class Board {
@@ -7,13 +9,13 @@ class Board {
 
   def initializePieces(selectedColor: String): Unit = {
     for (row <- 0 until 8; col <- 0 until 8 if (row + col) % 2 != 0) {
-      if (selectedColor == "white") {
+      if (MainApp.getSelectedColor().toLowerCase() == "white") {
         if (row < 3) {
           board((row, col)) = new Piece(PieceType.Standard, PieceColor.Black)
         } else if (row > 4) {
           board((row, col)) = new Piece(PieceType.Standard, PieceColor.White)
         }
-      } else {
+      } else if (MainApp.getSelectedColor().toLowerCase() == "black") {
         if (row < 3) {
           board((row, col)) = new Piece(PieceType.Standard, PieceColor.White)
         } else if (row > 4) {

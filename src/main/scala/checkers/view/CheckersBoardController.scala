@@ -79,27 +79,23 @@ class CheckersBoardController {
     }
   }
 
-  def initializePieces(): Unit = {
+  private def initializePieces(): Unit = {
     board.initializePieces(selectedColor)
-    val blackPieceImage = new Image(getClass.getResourceAsStream("/images/black_standard.png"))
-    val whitePieceImage = new Image(getClass.getResourceAsStream("/images/white_standard.png"))
 
-    val isWhiteSelected = selectedColor.toLowerCase == "white"
-
-    boardGrid.getChildren.forEach {
-      case button: Button =>
-        val row = GridPane.getRowIndex(button)
-        val col = GridPane.getColumnIndex(button)
-        val adjustedRow = if (isWhiteSelected) 7 - row else row // Adjust row index if white is selected
-        if ((adjustedRow.asInstanceOf[Int] + col) % 2 != 0) { // Convert adjustedRow to Int
-          board.getPiece(adjustedRow.asInstanceOf[Int], col).foreach { piece => // Convert adjustedRow to Int
-            val image = if (piece.color == PieceColor.White) whitePieceImage else blackPieceImage
-            button.setGraphic(new ImageView(image))
-            pieceMap(button) = (adjustedRow.asInstanceOf[Int], col) // Convert adjustedRow to Int
-            if (piece.color == player1.color) player1.pieces = piece :: player1.pieces else player2.pieces = piece :: player2.pieces
+    for (row <- 0 until 8) {
+      for (col <- 0 until 8 if (row + col) % 2 != 0) {
+        board.getPiece(row, col).foreach { piece =>
+          val button = boardGrid.getChildren
+            .filtered(node => Option(GridPane.getRowIndex(node)).map(_.intValue()).getOrElse(0) == row && Option(GridPane.getColumnIndex(node)).map(_.intValue()).getOrElse(0) == col)
+            .get(0).asInstanceOf[Button]
+          val imagePath = piece.color match {
+            case PieceColor.White => "/images/white_standard.png"
+            case PieceColor.Black => "/images/black_standard.png"
           }
+          button.setGraphic(new ImageView(new Image(getClass.getResourceAsStream(imagePath))))
+          pieceMap(button) = (row, col)
         }
-      case _ =>
+      }
     }
   }
 
