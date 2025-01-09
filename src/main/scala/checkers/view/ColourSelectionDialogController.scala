@@ -44,18 +44,6 @@ class ColourSelectionDialogController {
     }
   }
 
-  def onColorSelected(): Unit = {
-    selectedColor = if (whiteButton.isPressed) "white" else "black" // Ensure lowercase consistency
-
-    val loader = new FXMLLoader(getClass.getResource("/view/CheckersBoard.fxml"))
-    val root = loader.load[Parent]()
-
-    // Get the controller and set the selected color
-    val controller = loader.getController[CheckersBoardController]
-    controller.setSelectedColor(selectedColor) // Pass selectedColor here
-    println(s"Selected color passed to controller: $selectedColor")
-  }
-
   def handleOk(): Unit = {
     if (selectedColor == null) {
       val alert = new Alert(AlertType.ERROR)

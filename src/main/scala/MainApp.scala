@@ -71,8 +71,6 @@ object MainApp extends JFXApp3 {
     val loader = new FXMLLoader(resource)
     val root = loader.load[Parent]() // Load the FXML file and get the root node
     val controller = loader.getController[checkers.view.CheckersBoardController]
-    println(s"Selected color passed to controller: $selectedColor")
-    controller.setSelectedColor(selectedColor.toLowerCase) // Set the selected color before initializing
     stage.setScene(new Scene(root))
     stage.setTitle("Checkers Game")
     stage.show()
