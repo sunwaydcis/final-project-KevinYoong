@@ -49,7 +49,8 @@ class MainMenuController {
     val okClicked = MainApp.showColourSelectionDialog()
     if (okClicked) {
       // Logic to move to the game scene
-      println("Color selected, moving to game scene")
+      val selectedColor = MainApp.getSelectedColor()
+      println(s"Color selected: $selectedColor, moving to game scene")
       MainApp.showCheckersBoard()
     } else {
       // Logic to stay in the main menu

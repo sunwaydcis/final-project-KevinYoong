@@ -3,7 +3,11 @@ package checkers.util
 import checkers.model.{Board, PieceColor}
 
 object MoveValidator {
-  def isValidMove(startRow: Int, startCol: Int, endRow: Int, endCol: Int, board: Board, pieceColor: String): Boolean = {
+  def isValidMove(startRow: Int, startCol: Int, endRow: Int, endCol: Int, board: Board, pieceColor: String, currentTurn: PieceColor.Value): Boolean = {
+    if (PieceColor.withName(pieceColor) != currentTurn) {
+      return false
+    }
+
     val rowDiff = Math.abs(endRow - startRow)
     val colDiff = Math.abs(endCol - startCol)
 

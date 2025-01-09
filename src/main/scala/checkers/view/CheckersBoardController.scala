@@ -1,13 +1,14 @@
 package checkers.view
 
+import checkers.MainApp
 import javafx.fxml.FXML
 import javafx.scene.control.Button
 import javafx.scene.layout.GridPane
 import javafx.scene.image.{Image, ImageView}
 import javafx.scene.input.MouseEvent
-import checkers.model.{Board, Piece, PieceColor, PieceType}
+import checkers.model.{Board, Piece, PieceColor, Player}
 import javafx.fxml.FXMLLoader
-import javafx.scene.{Parent,Scene}
+import javafx.scene.{Parent, Scene}
 import javafx.stage.Stage
 import checkers.util.MoveValidator
 
@@ -21,13 +22,55 @@ class CheckersBoardController {
   private var selectedColor: String = _
   private val pieceMap = scala.collection.mutable.Map[Button, (Int, Int)]()
   private val board = new Board()
+  private var currentPlayer: Player = _
+  private var player1: Player = _
+  private var player2: Player = _
 
   def setSelectedColor(color: String): Unit = {
-    selectedColor = color
+    selectedColor = MainApp.getSelectedColor()
+    if (selectedColor == null) {
+      throw new IllegalStateException("Selected color must be...")
+    } else{
+      println(s"selectedColor is: $selectedColor")
+    }
+  }
+
+  def initializePlayers(): Unit = {
+    if (selectedColor == null) {
+      throw new IllegalStateException("Selected color must be set before initializing players")
+    }
+
+    selectedColor.toLowerCase() match {
+      case "white" =>
+        player1 = new Player("Player 1", PieceColor.White)
+        player2 = new Player("Player 2", PieceColor.Black)
+      case "black" =>
+        player1 = new Player("Player 1", PieceColor.Black)
+        player2 = new Player("Player 2", PieceColor.White)
+      case _ =>
+        throw new IllegalArgumentException("Invalid color selected")
+    }
+
+    // Ensure the black player always starts
+    if (player1.color == PieceColor.Black) {
+      currentPlayer = player1
+      player1.isTurn = true
+    } else if (player2.color == PieceColor.Black) {
+      currentPlayer = player2
+      player2.isTurn = true
+    }
+
+    println(s"Player 1 is ${player1.name} with color ${player1.color}")
+    println(s"Player 2 is ${player2.name} with color ${player2.color}")
+    println(s"Current player is ${currentPlayer.name}")
   }
 
   @FXML
-  private def initialize(): Unit = {
+  def initialize(): Unit = {
+    setSelectedColor(selectedColor)
+    if (player1 == null || player2 == null) {
+      initializePlayers()
+    }
     initializePieces()
     boardGrid.getChildren.forEach {
       case button: Button =>
@@ -41,15 +84,19 @@ class CheckersBoardController {
     val blackPieceImage = new Image(getClass.getResourceAsStream("/images/black_standard.png"))
     val whitePieceImage = new Image(getClass.getResourceAsStream("/images/white_standard.png"))
 
+    val isWhiteSelected = selectedColor.toLowerCase == "white"
+
     boardGrid.getChildren.forEach {
       case button: Button =>
         val row = GridPane.getRowIndex(button)
         val col = GridPane.getColumnIndex(button)
-        if ((row + col) % 2 != 0) {
-          board.getPiece(row, col).foreach { piece =>
+        val adjustedRow = if (isWhiteSelected) 7 - row else row // Adjust row index if white is selected
+        if ((adjustedRow.asInstanceOf[Int] + col) % 2 != 0) { // Convert adjustedRow to Int
+          board.getPiece(adjustedRow.asInstanceOf[Int], col).foreach { piece => // Convert adjustedRow to Int
             val image = if (piece.color == PieceColor.White) whitePieceImage else blackPieceImage
             button.setGraphic(new ImageView(image))
-            pieceMap(button) = (row, col)
+            pieceMap(button) = (adjustedRow.asInstanceOf[Int], col) // Convert adjustedRow to Int
+            if (piece.color == player1.color) player1.pieces = piece :: player1.pieces else player2.pieces = piece :: player2.pieces
           }
         }
       case _ =>
@@ -64,20 +111,43 @@ class CheckersBoardController {
 
     if (selectedPiece == null) {
       pieceMap.get(button).flatMap { case (r, c) => board.getPiece(r, c) }.foreach { piece =>
-        selectedPiece = piece
-        selectedPieceRow = row
-        selectedPieceCol = col
-        println(s"Selected piece at row: $selectedPieceRow, col: $selectedPieceCol")
+        if (piece.color == currentPlayer.color && currentPlayer.checkTurn) {
+          selectedPiece = piece
+          selectedPieceRow = row
+          selectedPieceCol = col
+          println(s"Selected ${selectedPiece.color} piece at row: $selectedPieceRow, col: $selectedPieceCol")
+        } else {
+          println(s"It's ${currentPlayer.name}'s turn")
+        }
       }
     } else {
-      if (MoveValidator.isValidMove(selectedPieceRow, selectedPieceCol, row, col, board, selectedPiece.color.toString)) {
+      if (MoveValidator.isValidMove(selectedPieceRow, selectedPieceCol, row, col, board, selectedPiece.color.toString, currentPlayer.color)) {
         board.movePiece(selectedPieceRow, selectedPieceCol, row, col)
         board.handleJump(selectedPieceRow, selectedPieceCol, row, col)
         updateBoardVisuals(selectedPieceRow, selectedPieceCol, row, col)
         selectedPiece = null
+        switchTurn()
+        println(s"It's now ${currentPlayer.name}'s turn")
+        checkForLoss()
       } else {
         println("Invalid move or destination occupied")
       }
+    }
+  }
+
+  private def switchTurn(): Unit = {
+    currentPlayer.isTurn = false
+    currentPlayer = if (currentPlayer == player1) player2 else player1
+    currentPlayer.isTurn = true
+    println(s"Switched turn. It's now ${currentPlayer.name}'s turn")
+    println(s"Player 1 turn: ${player1.isTurn}, Player 2 turn: ${player2.isTurn}")
+  }
+
+  private def checkForLoss(): Unit = {
+    if (player1.remainingPieces == 0) {
+      println(s"${player1.name} has lost!")
+    } else if (player2.remainingPieces == 0) {
+      println(s"${player2.name} has lost!")
     }
   }
 
@@ -112,6 +182,8 @@ class CheckersBoardController {
         middleButton.setGraphic(null)
         pieceMap.remove(middleButton)
         println(s"Removed jumped piece at row: $middleRow, col: $middleCol")
+        val jumpedPiece = board.getPiece(middleRow, middleCol).get
+        if (jumpedPiece.color == player1.color) player1.pieces = player1.pieces.filterNot(_ == jumpedPiece) else player2.pieces = player2.pieces.filterNot(_ == jumpedPiece)
       }
     }
   }

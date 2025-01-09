@@ -5,6 +5,8 @@ import javafx.scene.control.Alert.AlertType
 import javafx.scene.control.{Alert, Button}
 import javafx.stage.Stage
 import javafx.scene.image.{Image, ImageView}
+import javafx.fxml.FXMLLoader
+import javafx.scene.Parent
 
 class ColourSelectionDialogController {
 
@@ -14,29 +16,44 @@ class ColourSelectionDialogController {
   @FXML private var whiteStandard : ImageView = _
   @FXML private var blackStandard : ImageView = _
 
-  var dialogStage: Stage = null
+  var dialogStage: Stage = _
   var okClicked:Boolean = false
-  private var selectedColor: String = _
+  var selectedColor: String = _
 
   @FXML
   private def initialize(): Unit = {
-    whiteButton.setOnAction(_ => handleColorSelection("white"))
-    blackButton.setOnAction(_ => handleColorSelection("black"))
+    whiteButton.setOnAction(_ => handleColorSelection(whiteButton))
+    blackButton.setOnAction(_ => handleColorSelection(blackButton))
     cancelButton.setOnAction(_ => handleCancel())
 
     whiteStandard.setImage(new javafx.scene.image.Image(getClass.getResourceAsStream("/images/white_standard.png")))
     blackStandard.setImage(new javafx.scene.image.Image(getClass.getResourceAsStream("/images/black_standard.png")))
   }
 
-  private def handleColorSelection(color: String): Unit = {
-    selectedColor = color
-    if (color == "white") {
+  private def handleColorSelection(button: Button): Unit = {
+    if (button == whiteButton) {
+      selectedColor = "White"
       whiteButton.setStyle("-fx-background-color: #ADD8E6;")
       blackButton.setStyle("")
-    } else {
+      println(s"Selected color: $selectedColor")
+    } else if (button == blackButton) {
+      selectedColor = "Black"
       blackButton.setStyle("-fx-background-color: #ADD8E6;")
       whiteButton.setStyle("")
+      println(s"Selected color: $selectedColor")
     }
+  }
+
+  def onColorSelected(): Unit = {
+    selectedColor = if (whiteButton.isPressed) "white" else "black" // Ensure lowercase consistency
+
+    val loader = new FXMLLoader(getClass.getResource("/view/CheckersBoard.fxml"))
+    val root = loader.load[Parent]()
+
+    // Get the controller and set the selected color
+    val controller = loader.getController[CheckersBoardController]
+    controller.setSelectedColor(selectedColor) // Pass selectedColor here
+    println(s"Selected color passed to controller: $selectedColor")
   }
 
   def handleOk(): Unit = {
@@ -57,5 +74,7 @@ class ColourSelectionDialogController {
     dialogStage.close()
   }
 
-  def getSelectedColor: String = selectedColor
+  def getSelectedColor(): String = {
+    selectedColor
+  }
 }

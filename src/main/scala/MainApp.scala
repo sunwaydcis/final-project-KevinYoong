@@ -50,8 +50,17 @@ object MainApp extends JFXApp3 {
 
     control.dialogStage = dialog
     dialog.showAndWait()
-    selectedColor = control.getSelectedColor
+
+    // Check if the user clicked OK and update the selectedColor
+    if (control.okClicked) {
+      selectedColor = control.getSelectedColor() // Assign the selected color from the controller
+      println(s"Selected color: $selectedColor")
+    }
     control.okClicked
+  }
+
+  def getSelectedColor(): String = {
+    selectedColor
   }
 
   def showCheckersBoard(): Unit = {
@@ -60,12 +69,12 @@ object MainApp extends JFXApp3 {
       throw new RuntimeException("CheckersBoard.fxml not found")
     }
     val loader = new FXMLLoader(resource)
-    loader.load()
-    val root = loader.getRoot[Parent]
+    val root = loader.load[Parent]() // Load the FXML file and get the root node
     val controller = loader.getController[checkers.view.CheckersBoardController]
-    controller.setSelectedColor(selectedColor)
-    controller.initializePieces()
+    println(s"Selected color passed to controller: $selectedColor")
+    controller.setSelectedColor(selectedColor.toLowerCase) // Set the selected color before initializing
     stage.setScene(new Scene(root))
     stage.setTitle("Checkers Game")
+    stage.show()
   }
 }
