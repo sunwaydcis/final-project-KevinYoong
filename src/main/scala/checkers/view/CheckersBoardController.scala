@@ -11,6 +11,9 @@ import javafx.fxml.FXMLLoader
 import javafx.scene.{Parent, Scene}
 import javafx.stage.Stage
 import checkers.util.MoveValidator
+import javafx.scene.shape.Circle
+import javafx.scene.paint.Color
+import scala.jdk.CollectionConverters.*
 
 class CheckersBoardController {
 
@@ -62,7 +65,7 @@ class CheckersBoardController {
 
     println(s"Player 1 is ${player1.name} with color ${player1.color}")
     println(s"Player 2 is ${player2.name} with color ${player2.color}")
-    println(s"Current player is ${currentPlayer.name}")
+    println(s"Current player is ${currentPlayer.name} moving ${currentPlayer.color} pieces")
   }
 
   @FXML
@@ -105,23 +108,43 @@ class CheckersBoardController {
     val row = Option(GridPane.getRowIndex(button)).map(_.intValue()).getOrElse(0)
     val col = Option(GridPane.getColumnIndex(button)).map(_.intValue()).getOrElse(0)
 
+    // Clear all previous highlights
+    boardGrid.getChildren.forEach {
+      case btn: Button =>
+        if (btn.getGraphic.isInstanceOf[Circle]) {
+          btn.setGraphic(null)
+        }
+      case _ =>
+    }
+
+    // If no piece is selected, select a piece of the current player's color
     if (selectedPiece == null) {
       pieceMap.get(button).flatMap { case (r, c) => board.getPiece(r, c) }.foreach { piece =>
-        if (piece.color == currentPlayer.color && currentPlayer.checkTurn) {
+        if (piece.color == currentPlayer.color) {
           selectedPiece = piece
           selectedPieceRow = row
           selectedPieceCol = col
           println(s"Selected ${selectedPiece.color} piece at row: $selectedPieceRow, col: $selectedPieceCol")
+
+          // Highlight valid moves for the selected piece
+          val validMoves = MoveValidator.getValidMoves(selectedPieceRow, selectedPieceCol, board, selectedPiece.color.toString, currentPlayer.color)
+          validMoves.foreach { case (validRow, validCol) =>
+            val validButton = boardGrid.getChildren
+              .filtered(node => Option(GridPane.getRowIndex(node)).map(_.intValue()).getOrElse(0) == validRow && Option(GridPane.getColumnIndex(node)).map(_.intValue()).getOrElse(0) == validCol)
+              .get(0).asInstanceOf[Button]
+            highlightValidMove(validButton)
+          }
         } else {
           println(s"It's ${currentPlayer.name}'s turn")
         }
       }
     } else {
+      // After selecting a piece, move it if valid
       if (MoveValidator.isValidMove(selectedPieceRow, selectedPieceCol, row, col, board, selectedPiece.color.toString, currentPlayer.color)) {
         board.movePiece(selectedPieceRow, selectedPieceCol, row, col)
         board.handleJump(selectedPieceRow, selectedPieceCol, row, col)
         updateBoardVisuals(selectedPieceRow, selectedPieceCol, row, col)
-        selectedPiece = null
+        selectedPiece = null // Allow the player to select another piece after move
         switchTurn()
         println(s"It's now ${currentPlayer.name}'s turn")
         checkForLoss()
@@ -130,6 +153,13 @@ class CheckersBoardController {
       }
     }
   }
+
+  private def highlightValidMove(button: Button): Unit = {
+    val circle = new Circle(5, Color.WHITE)
+    circle.setMouseTransparent(true) // Make sure the circle does not interfere with button clicks
+    button.setGraphic(circle)
+  }
+
 
   private def switchTurn(): Unit = {
     currentPlayer.isTurn = false
@@ -157,8 +187,9 @@ class CheckersBoardController {
 
     val oldButtonList = boardGrid.getChildren
       .filtered(node => Option(GridPane.getRowIndex(node)).map(_.intValue()).getOrElse(0) == startRow && Option(GridPane.getColumnIndex(node)).map(_.intValue()).getOrElse(0) == startCol)
-    if (!oldButtonList.isEmpty) {
-      val oldButton = oldButtonList.get(0).asInstanceOf[Button]
+      .asScala
+    if (oldButtonList.nonEmpty) {
+      val oldButton = oldButtonList.head.asInstanceOf[Button]
       oldButton.setGraphic(null)
       pieceMap.remove(oldButton)
       println(s"Moved piece to row: $endRow, col: $endCol")
@@ -173,12 +204,16 @@ class CheckersBoardController {
       val middleCol = (startCol + endCol) / 2
       val middleButtonList = boardGrid.getChildren
         .filtered(node => Option(GridPane.getRowIndex(node)).map(_.intValue()).getOrElse(0) == middleRow && Option(GridPane.getColumnIndex(node)).map(_.intValue()).getOrElse(0) == middleCol)
-      if (!middleButtonList.isEmpty) {
-        val middleButton = middleButtonList.get(0).asInstanceOf[Button]
+        .asScala
+      if (middleButtonList.nonEmpty) {
+        val middleButton = middleButtonList.head.asInstanceOf[Button]
         middleButton.setGraphic(null)
         pieceMap.remove(middleButton)
         println(s"Removed jumped piece at row: $middleRow, col: $middleCol")
-        val jumpedPiece = board.getPiece(middleRow, middleCol).get
+        val jumpedPiece = board.getPiece(middleRow, middleCol).getOrElse {
+          println("Jumped piece not found")
+          return
+        }
         if (jumpedPiece.color == player1.color) player1.pieces = player1.pieces.filterNot(_ == jumpedPiece) else player2.pieces = player2.pieces.filterNot(_ == jumpedPiece)
       }
     }
