@@ -1,13 +1,15 @@
 package checkers.model
 
 import checkers.MainApp
+import javafx.scene.image.{Image, ImageView}
+import javafx.scene.layout.GridPane
+import javafx.scene.control.Button
 
 import scala.collection.mutable
 
 class Board {
   private val board: mutable.Map[(Int, Int), Piece] = mutable.Map()
 
-  // Initialize pieces on the board
   def initializePieces(selectedColor: String): Unit = {
     for (row <- 0 until 8; col <- 0 until 8 if (row + col) % 2 != 0) {
       if (MainApp.getSelectedColor().toLowerCase() == "white") {
@@ -26,32 +28,21 @@ class Board {
     }
   }
 
-  // Get the piece at a specific position
   def getPiece(row: Int, col: Int): Option[Piece] = {
     board.get((row, col))
   }
 
-  // Move a piece from one position to another
   def movePiece(startRow: Int, startCol: Int, endRow: Int, endCol: Int): Unit = {
     val piece = board.get((startRow, startCol))
     board.remove((startRow, startCol))
     board.update((endRow, endCol), piece.get)
-
-    // Promote to king if the piece reaches the opponent's last row
-    piece.foreach { p =>
-      if ((p.color == PieceColor.White && endRow == 0) || (p.color == PieceColor.Black && endRow == 7)) {
-        board.update((endRow, endCol), p.promoteToKing())
-      }
-    }
   }
 
-  // Remove a piece from the board
   def removePiece(row: Int, col: Int): Unit = {
     board.remove((row, col))
   }
 
-  // Handle jump logic
-  def handleJump(startRow: Int, startCol: Int, endRow: Int, endCol: Int): Unit = {
+  def handleStandardJump(startRow: Int, startCol: Int, endRow: Int, endCol: Int): Unit = {
     val rowDiff = Math.abs(endRow - startRow)
     if (rowDiff == 2) {
       val middleRow = (startRow + endRow) / 2
