@@ -77,7 +77,22 @@ class CheckersBoardController {
     initializePieces()
     boardGrid.getChildren.forEach {
       case button: Button =>
-        button.setOnMouseClicked((event: MouseEvent) => handleCheckersMovement(event))
+        button.setOnMouseClicked((event: MouseEvent) => {
+          val row = Option(GridPane.getRowIndex(button)).map(_.intValue()).getOrElse(0)
+          val col = Option(GridPane.getColumnIndex(button)).map(_.intValue()).getOrElse(0)
+          board.getPiece(row, col) match {
+            case Some(piece) if piece.isKing =>
+              handleKingPieceMovement(event)
+            case Some(_) =>
+              handleStandardPieceMovement(event)
+            case None =>
+              if (selectedPiece != null && selectedPiece.isKing) {
+                handleKingPieceMovement(event)
+              } else {
+                handleStandardPieceMovement(event)
+              }
+          }
+        })
       case _ =>
     }
   }
@@ -103,7 +118,7 @@ class CheckersBoardController {
   }
 
   @FXML
-  private def handleCheckersMovement(event: MouseEvent): Unit = {
+  private def handleStandardPieceMovement(event: MouseEvent): Unit = {
     val button = event.getSource.asInstanceOf[Button]
     val row = Option(GridPane.getRowIndex(button)).map(_.intValue()).getOrElse(0)
     val col = Option(GridPane.getColumnIndex(button)).map(_.intValue()).getOrElse(0)
@@ -119,7 +134,7 @@ class CheckersBoardController {
 
     // Get the piece associated with the clicked button
     pieceMap.get(button).flatMap { case (r, c) => board.getPiece(r, c) }.foreach { piece =>
-      if (piece.color == currentPlayer.color) {
+      if (piece.color == currentPlayer.color && !piece.isKing) {
         // Update the selected piece regardless of whether a piece was already selected
         selectedPiece = piece
         selectedPieceRow = row
@@ -139,10 +154,64 @@ class CheckersBoardController {
     }
 
     // If no valid piece was selected but a piece is already selected, attempt to move it
-    if (selectedPiece != null) {
+    if (selectedPiece != null && !selectedPiece.isKing) {
       if (MoveValidator.isValidMove(selectedPieceRow, selectedPieceCol, row, col, board, selectedPiece.color.toString, currentPlayer.color, selectedPiece.isKing)) {
         board.movePiece(selectedPieceRow, selectedPieceCol, row, col)
-        board.handleJump(selectedPieceRow, selectedPieceCol, row, col)
+        board.handleStandardJump(selectedPieceRow, selectedPieceCol, row, col)
+        updateBoardVisuals(selectedPieceRow, selectedPieceCol, row, col)
+        selectedPiece = null // Reset the selection to allow new selections
+        switchTurn()
+        println(s"It's now ${currentPlayer.name}'s turn")
+        checkForLoss()
+      } else {
+        println("Invalid move or destination occupied")
+      }
+    } else {
+      println("No piece selected or invalid selection")
+    }
+  }
+
+  @FXML
+  private def handleKingPieceMovement(event: MouseEvent): Unit = {
+    val button = event.getSource.asInstanceOf[Button]
+    val row = Option(GridPane.getRowIndex(button)).map(_.intValue()).getOrElse(0)
+    val col = Option(GridPane.getColumnIndex(button)).map(_.intValue()).getOrElse(0)
+
+    // Clear all previous highlights
+    boardGrid.getChildren.forEach {
+      case btn: Button =>
+        if (btn.getGraphic.isInstanceOf[Circle]) {
+          btn.setGraphic(null)
+        }
+      case _ =>
+    }
+
+    // Get the piece associated with the clicked button
+    pieceMap.get(button).flatMap { case (r, c) => board.getPiece(r, c) }.foreach { piece =>
+      if (piece.color == currentPlayer.color && piece.isKing) {
+        // Update the selected piece regardless of whether a piece was already selected
+        selectedPiece = piece
+        selectedPieceRow = row
+        selectedPieceCol = col
+        println(s"Selected ${selectedPiece.color} king piece at row: $selectedPieceRow, col: $selectedPieceCol")
+
+        // Highlight valid moves for the newly selected piece
+        val validMoves = MoveValidator.getValidMoves(selectedPieceRow, selectedPieceCol, board, selectedPiece.color.toString, currentPlayer.color, selectedPiece.isKing)
+        validMoves.foreach { case (validRow, validCol) =>
+          val validButton = boardGrid.getChildren
+            .filtered(node => Option(GridPane.getRowIndex(node)).map(_.intValue()).getOrElse(0) == validRow && Option(GridPane.getColumnIndex(node)).map(_.intValue()).getOrElse(0) == validCol)
+            .get(0).asInstanceOf[Button]
+          highlightValidMove(validButton)
+        }
+        return // Exit early if a piece was selected
+      }
+    }
+
+    // If no valid piece was selected but a piece is already selected, attempt to move it
+    if (selectedPiece != null && selectedPiece.isKing) {
+      if (MoveValidator.isValidMove(selectedPieceRow, selectedPieceCol, row, col, board, selectedPiece.color.toString, currentPlayer.color, selectedPiece.isKing)) {
+        board.movePiece(selectedPieceRow, selectedPieceCol, row, col)
+        board.handleKingJump(selectedPieceRow, selectedPieceCol, row, col)
         updateBoardVisuals(selectedPieceRow, selectedPieceCol, row, col)
         selectedPiece = null // Reset the selection to allow new selections
         switchTurn()
