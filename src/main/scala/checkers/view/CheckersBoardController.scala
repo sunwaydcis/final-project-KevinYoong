@@ -6,7 +6,7 @@ import javafx.scene.control.Button
 import javafx.scene.layout.GridPane
 import javafx.scene.image.{Image, ImageView}
 import javafx.scene.input.MouseEvent
-import checkers.model.{Board, Piece, PieceColor, Player}
+import checkers.model.{Board, Piece, PieceColor, PieceType, Player}
 import javafx.fxml.FXMLLoader
 import javafx.scene.{Parent, Scene}
 import javafx.stage.Stage
@@ -184,7 +184,12 @@ class CheckersBoardController {
       .filtered(node => Option(GridPane.getRowIndex(node)).map(_.intValue()).getOrElse(0) == endRow && Option(GridPane.getColumnIndex(node)).map(_.intValue()).getOrElse(0) == endCol)
       .get(0).asInstanceOf[Button]
 
-    button.setGraphic(new ImageView(if (selectedPiece.color == PieceColor.White) new Image(getClass.getResourceAsStream("/images/white_standard.png")) else new Image(getClass.getResourceAsStream("/images/black_standard.png"))))
+    val piece = board.getPiece(endRow, endCol).get
+    val imagePath = piece.pieceType match {
+      case PieceType.Standard => if (piece.color == PieceColor.White) "/images/white_standard.png" else "/images/black_standard.png"
+      case PieceType.King => if (piece.color == PieceColor.White) "/images/white_king.png" else "/images/black_king.png"
+    }
+    button.setGraphic(new ImageView(new Image(getClass.getResourceAsStream(imagePath))))
     pieceMap(button) = (endRow, endCol)
 
     val oldButtonList = boardGrid.getChildren

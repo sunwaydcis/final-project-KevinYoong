@@ -33,8 +33,16 @@ class Board {
 
   // Move a piece from one position to another
   def movePiece(startRow: Int, startCol: Int, endRow: Int, endCol: Int): Unit = {
-    val piece = board.remove((startRow, startCol))
-    piece.foreach(board((endRow, endCol)) = _)
+    val piece = board.get((startRow, startCol))
+    board.remove((startRow, startCol))
+    board.update((endRow, endCol), piece.get)
+
+    // Promote to king if the piece reaches the opponent's last row
+    piece.foreach { p =>
+      if ((p.color == PieceColor.White && endRow == 0) || (p.color == PieceColor.Black && endRow == 7)) {
+        board.update((endRow, endCol), p.promoteToKing())
+      }
+    }
   }
 
   // Remove a piece from the board
