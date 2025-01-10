@@ -127,7 +127,7 @@ class CheckersBoardController {
         println(s"Selected ${selectedPiece.color} piece at row: $selectedPieceRow, col: $selectedPieceCol")
 
         // Highlight valid moves for the newly selected piece
-        val validMoves = MoveValidator.getValidMoves(selectedPieceRow, selectedPieceCol, board, selectedPiece.color.toString, currentPlayer.color)
+        val validMoves = MoveValidator.getValidMoves(selectedPieceRow, selectedPieceCol, board, selectedPiece.color.toString, currentPlayer.color, selectedPiece.isKing)
         validMoves.foreach { case (validRow, validCol) =>
           val validButton = boardGrid.getChildren
             .filtered(node => Option(GridPane.getRowIndex(node)).map(_.intValue()).getOrElse(0) == validRow && Option(GridPane.getColumnIndex(node)).map(_.intValue()).getOrElse(0) == validCol)
@@ -140,7 +140,7 @@ class CheckersBoardController {
 
     // If no valid piece was selected but a piece is already selected, attempt to move it
     if (selectedPiece != null) {
-      if (MoveValidator.isValidMove(selectedPieceRow, selectedPieceCol, row, col, board, selectedPiece.color.toString, currentPlayer.color)) {
+      if (MoveValidator.isValidMove(selectedPieceRow, selectedPieceCol, row, col, board, selectedPiece.color.toString, currentPlayer.color, selectedPiece.isKing)) {
         board.movePiece(selectedPieceRow, selectedPieceCol, row, col)
         board.handleJump(selectedPieceRow, selectedPieceCol, row, col)
         updateBoardVisuals(selectedPieceRow, selectedPieceCol, row, col)
