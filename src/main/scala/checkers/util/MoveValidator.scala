@@ -29,21 +29,18 @@ object MoveValidator {
     if (isForwardMove && rowDiff == colDiff) {
       if (rowDiff == 1) {
         val isEmpty = board.getPiece(endRow, endCol).isEmpty
-        println(s"Move to ($endRow, $endCol) is ${if (isEmpty) "valid" else "invalid"}")
         isEmpty
       } else if (rowDiff == 2) {
         val middleRow = (startRow + endRow) / 2
         val middleCol = (startCol + endCol) / 2
         val canCapture = board.getPiece(middleRow, middleCol).exists(_.color != PieceColor.withName(pieceColor))
         val isEmpty = board.getPiece(endRow, endCol).isEmpty
-        println(s"Capture move to ($endRow, $endCol) is ${if (canCapture && isEmpty) "valid" else "invalid"}")
         canCapture && isEmpty
       } else {
         println(s"Invalid move: not a valid diagonal move for ($startRow, $startCol) to ($endRow, $endCol)")
         false
       }
     } else {
-      println(s"Invalid move: not a forward move for ($startRow, $startCol) to ($endRow, $endCol)")
       false
     }
   }
