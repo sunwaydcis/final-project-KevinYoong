@@ -1,18 +1,19 @@
 package checkers.view
 
 import checkers.MainApp
-import javafx.fxml.FXML
+import checkers.model.{Board, Piece, PieceColor, Player}
+import checkers.util.{Checkers_AI, MoveValidator}
+import javafx.application.Platform
+import javafx.fxml.{FXML, FXMLLoader}
 import javafx.scene.control.Button
-import javafx.scene.layout.GridPane
 import javafx.scene.image.{Image, ImageView}
 import javafx.scene.input.MouseEvent
-import checkers.model.{Board, Piece, PieceColor, PieceType, Player}
-import javafx.fxml.FXMLLoader
+import javafx.scene.layout.GridPane
+import javafx.scene.paint.Color
+import javafx.scene.shape.Circle
 import javafx.scene.{Parent, Scene}
 import javafx.stage.Stage
-import checkers.util.MoveValidator
-import javafx.scene.shape.Circle
-import javafx.scene.paint.Color
+
 import scala.jdk.CollectionConverters.*
 
 class CheckersBoardController {
@@ -26,10 +27,11 @@ class CheckersBoardController {
   private val pieceMap = scala.collection.mutable.Map[Button, (Int, Int)]()
   private val board = new Board()
   private var currentPlayer: Player = _
+  private var ai: Checkers_AI = _
   private var player1: Player = _
   private var player2: Player = _
 
-  def setSelectedColor(color: String): Unit = {
+  private def setSelectedColor(color: String): Unit = {
     selectedColor = MainApp.getSelectedColor()
     if (selectedColor == null) {
       throw new IllegalStateException("Selected color must be...")
@@ -38,7 +40,7 @@ class CheckersBoardController {
     }
   }
 
-  def initializePlayers(): Unit = {
+  private def initializePlayers(): Unit = {
     if (selectedColor == null) {
       throw new IllegalStateException("Selected color must be set before initializing players")
     }
@@ -64,9 +66,15 @@ class CheckersBoardController {
     }
 
     board.setPlayers(player1, player2)
+    ai = new Checkers_AI(board, player2.color, player1.color)
     println(s"Player 1 is ${player1.name} with color ${player1.color}")
     println(s"Player 2 is ${player2.name} with color ${player2.color}")
     println(s"Current player is ${currentPlayer.name} moving ${currentPlayer.color} pieces")
+
+    // If the AI is the current player, make the first move
+    if (currentPlayer == player2) {
+      handleAITurn()
+    }
   }
 
   @FXML
@@ -112,7 +120,6 @@ class CheckersBoardController {
     }
   }
 
-  @FXML
   private def handleStandardPieceMovement(event: MouseEvent): Unit = {
     val button = event.getSource.asInstanceOf[Button]
     val row = Option(GridPane.getRowIndex(button)).map(_.intValue()).getOrElse(0)
@@ -150,9 +157,10 @@ class CheckersBoardController {
 
     // If no valid piece was selected but a piece is already selected, attempt to move it
     if (selectedPiece != null) {
+      println(s"Attempting to move ${selectedPiece.color} piece from ($selectedPieceRow, $selectedPieceCol) to ($row, $col)")
       if (MoveValidator.isValidMove(selectedPieceRow, selectedPieceCol, row, col, board, selectedPiece.color.toString, currentPlayer.color)) {
         board.movePiece(selectedPieceRow, selectedPieceCol, row, col)
-        board.handleStandardJump(selectedPieceRow, selectedPieceCol, row, col)
+        board.handleCapture(selectedPieceRow, selectedPieceCol, row, col)
         updateBoardVisuals(selectedPieceRow, selectedPieceCol, row, col)
         selectedPiece = null // Reset the selection to allow new selections
         switchTurn()
@@ -162,6 +170,28 @@ class CheckersBoardController {
     } else {
       println("No piece selected or invalid selection")
     }
+  }
+
+  private def handleAITurn(): Unit = {
+    new Thread(() => {
+      try {
+        Thread.sleep(1000) // 1 second delay
+      } catch {
+        case e: InterruptedException => e.printStackTrace()
+      }
+      Platform.runLater(() => {
+        val bestMove = ai.getBestMove()
+        if (bestMove != null) {
+          board.movePiece(bestMove._1._1, bestMove._1._2, bestMove._2._1, bestMove._2._2)
+          board.handleCapture(bestMove._1._1, bestMove._1._2, bestMove._2._1, bestMove._2._2)
+          updateBoardVisuals(bestMove._1._1, bestMove._1._2, bestMove._2._1, bestMove._2._2)
+          switchTurn() // Switch back to the user after AI move
+        } else {
+          println("AI has no valid moves left")
+          // Handle the scenario where the AI has no valid moves left
+        }
+      })
+    }).start()
   }
   
   private def highlightValidMove(button: Button): Unit = {
@@ -176,6 +206,10 @@ class CheckersBoardController {
     currentPlayer = if (currentPlayer == player1) player2 else player1
     currentPlayer.isTurn = true
     println(s"Switched turn. It's now ${currentPlayer.name}'s turn")
+
+    if (currentPlayer == player2) {
+      handleAITurn()
+    }
   }
 
   private def checkForLoss(): Unit = {
@@ -187,7 +221,7 @@ class CheckersBoardController {
   }
 
   // Update the visual representation of the board
-  def updateBoardVisuals(startRow: Int, startCol: Int, endRow: Int, endCol: Int): Unit = {
+  private def updateBoardVisuals(startRow: Int, startCol: Int, endRow: Int, endCol: Int): Unit = {
     val button = boardGrid.getChildren
       .filtered(node => Option(GridPane.getRowIndex(node)).map(_.intValue()).getOrElse(0) == endRow && Option(GridPane.getColumnIndex(node)).map(_.intValue()).getOrElse(0) == endCol)
       .get(0).asInstanceOf[Button]

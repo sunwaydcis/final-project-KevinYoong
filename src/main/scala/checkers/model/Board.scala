@@ -19,15 +19,15 @@ class Board {
     for (row <- 0 until 8; col <- 0 until 8 if (row + col) % 2 != 0) {
       if (MainApp.getSelectedColor().toLowerCase() == "white") {
         if (row < 3) {
-          board((row, col)) = new Piece(PieceType.Standard, PieceColor.Black)
+          board((row, col)) = Piece(PieceType.Standard, PieceColor.Black)
         } else if (row > 4) {
-          board((row, col)) = new Piece(PieceType.Standard, PieceColor.White)
+          board((row, col)) = Piece(PieceType.Standard, PieceColor.White)
         }
       } else if (MainApp.getSelectedColor().toLowerCase() == "black") {
         if (row < 3) {
-          board((row, col)) = new Piece(PieceType.Standard, PieceColor.White)
+          board((row, col)) = Piece(PieceType.Standard, PieceColor.White)
         } else if (row > 4) {
-          board((row, col)) = new Piece(PieceType.Standard, PieceColor.Black)
+          board((row, col)) = Piece(PieceType.Standard, PieceColor.Black)
         }
       }
     }
@@ -43,11 +43,11 @@ class Board {
     board.update((endRow, endCol), piece.get)
   }
 
-  def removePiece(row: Int, col: Int): Unit = {
+  private def removePiece(row: Int, col: Int): Unit = {
     board.remove((row, col))
   }
 
-  def handleStandardJump(startRow: Int, startCol: Int, endRow: Int, endCol: Int): Unit = {
+  def handleCapture(startRow: Int, startCol: Int, endRow: Int, endCol: Int): Unit = {
     val rowDiff = Math.abs(endRow - startRow)
     if (rowDiff == 2) {
       val middleRow = (startRow + endRow) / 2
@@ -72,6 +72,16 @@ class Board {
         }
         removePiece(middleRow, middleCol)
       }
+    }
+  }
+
+  def winner(): Option[Player] = {
+    if (player1.remainingPieces == 0) {
+      Some(player2)
+    } else if (player2.remainingPieces == 0) {
+      Some(player1)
+    } else {
+      None
     }
   }
 }
