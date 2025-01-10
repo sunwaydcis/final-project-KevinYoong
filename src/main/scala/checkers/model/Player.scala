@@ -8,5 +8,9 @@ class Player(val name: String, val color: PieceColor) {
 
   def checkTurn: Boolean = isTurn
 
-  def remainingPieces: Int = pieces.size
+  def remainingPieces: Int = {
+    val count = pieces.size
+    println(s"$name remaining pieces: $count")
+    count
+  }
 }

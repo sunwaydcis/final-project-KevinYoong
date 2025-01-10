@@ -63,6 +63,7 @@ class CheckersBoardController {
       player2.isTurn = true
     }
 
+    board.setPlayers(player1, player2)
     println(s"Player 1 is ${player1.name} with color ${player1.color}")
     println(s"Player 2 is ${player2.name} with color ${player2.color}")
     println(s"Current player is ${currentPlayer.name} moving ${currentPlayer.color} pieces")

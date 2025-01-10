@@ -1,14 +1,19 @@
 package checkers.model
 
 import checkers.MainApp
-import javafx.scene.image.{Image, ImageView}
-import javafx.scene.layout.GridPane
-import javafx.scene.control.Button
-
 import scala.collection.mutable
 
 class Board {
   private val board: mutable.Map[(Int, Int), Piece] = mutable.Map()
+  var player1: Player = _
+  var player2: Player = _
+  var remainingWhitePieces: Int = 12
+  var remainingBlackPieces: Int = 12
+
+  def setPlayers(player1: Player, player2: Player): Unit = {
+    this.player1 = player1
+    this.player2 = player2
+  }
 
   def initializePieces(selectedColor: String): Unit = {
     for (row <- 0 until 8; col <- 0 until 8 if (row + col) % 2 != 0) {
@@ -47,7 +52,26 @@ class Board {
     if (rowDiff == 2) {
       val middleRow = (startRow + endRow) / 2
       val middleCol = (startCol + endCol) / 2
-      removePiece(middleRow, middleCol)
+      getPiece(middleRow, middleCol).foreach { jumpedPiece =>
+        if (MainApp.getSelectedColor().toLowerCase() == "white") {
+          if (jumpedPiece.color == PieceColor.White) {
+            remainingWhitePieces -= 1
+            println(s"Player 1 remaining pieces: $remainingWhitePieces")
+          } else {
+            remainingBlackPieces -= 1
+            println(s"Player 2 remaining pieces: $remainingBlackPieces")
+          }
+        } else if (MainApp.getSelectedColor().toLowerCase() == "black") {
+          if (jumpedPiece.color == PieceColor.White) {
+            remainingWhitePieces -= 1
+            println(s"Player 1 remaining pieces: $remainingWhitePieces")
+          } else {
+            remainingBlackPieces -= 1
+            println(s"Player 2 remaining pieces: $remainingBlackPieces")
+          }
+        }
+        removePiece(middleRow, middleCol)
+      }
     }
   }
 }
