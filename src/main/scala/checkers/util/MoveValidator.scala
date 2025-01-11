@@ -164,6 +164,7 @@ object MoveValidator {
       if (pieceColor == "White") {
         List((1, -1), (1, 1)) // White pieces move downwards
       } else {
+        List((-1, -1), (-1, 1)) // Black pieces move upwards
       }
     }
     
