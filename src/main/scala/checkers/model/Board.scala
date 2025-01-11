@@ -41,10 +41,24 @@ class Board {
     val piece = board.get((startRow, startCol))
     board.remove((startRow, startCol))
     board.update((endRow, endCol), piece.get)
+
+    // Check if the piece should be promoted to a king
+    promoteKing(endRow, endCol)
   }
 
   private def removePiece(row: Int, col: Int): Unit = {
     board.remove((row, col))
+  }
+
+  private def promoteKing(row: Int, col: Int): Unit = {
+    getPiece(row, col).foreach { piece =>
+      if ((MainApp.getSelectedColor() == "White" && piece.color == PieceColor.White && row == 0) ||
+        (MainApp.getSelectedColor() == "White" && piece.color == PieceColor.Black && row == 7) ||
+        (MainApp.getSelectedColor() == "Black" && piece.color == PieceColor.Black && row == 0) ||
+        (MainApp.getSelectedColor() == "Black" && piece.color == PieceColor.White && row == 7)) {
+        piece.isKing = true
+      }
+    }
   }
 
   def handleCapture(startRow: Int, startCol: Int, endRow: Int, endCol: Int): Unit = {

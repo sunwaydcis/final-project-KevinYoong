@@ -227,7 +227,11 @@ class CheckersBoardController {
       .get(0).asInstanceOf[Button]
 
     val piece = board.getPiece(endRow, endCol).get
-    val imagePath = if (piece.color == PieceColor.White) "/images/white_standard.png" else "/images/black_standard.png"
+    val imagePath = if (piece.color == PieceColor.White) {
+      if (piece.isKing) "/images/white_king.png" else "/images/white_standard.png"
+    } else {
+      if (piece.isKing) "/images/black_king.png" else "/images/black_standard.png"
+    }
     button.setGraphic(new ImageView(new Image(getClass.getResourceAsStream(imagePath))))
     pieceMap(button) = (endRow, endCol)
 

@@ -10,7 +10,6 @@ object PieceColor extends Enumeration {
   val White, Black = Value
 }
 
-import PieceType._
-import PieceColor._
+import checkers.model.PieceColor.*
 
-case class Piece(pieceType: PieceType.Value, color: PieceColor.Value)
+case class Piece(pieceType: PieceType.Value, color: PieceColor.Value, var isKing: Boolean = false)
