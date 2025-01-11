@@ -26,7 +26,7 @@ class PauseScreenController {
   @FXML
   private def handleRestart(): Unit = {
     dialogStage.close()
-    MainApp.showCheckersBoard()
+    MainApp.showCheckersBoard(MainApp.isGameAI())
   }
 
   @FXML

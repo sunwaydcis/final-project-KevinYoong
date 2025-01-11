@@ -12,6 +12,7 @@ import scalafx.stage.{Modality, Stage}
 object MainApp extends JFXApp3 {
 
   private var selectedColor: String = _
+  private var isAI: Boolean = true
 
   override def start(): Unit = {
     // Load MainMenu.fxml
@@ -64,6 +65,7 @@ object MainApp extends JFXApp3 {
   }
 
   def showCheckersBoard(isAI: Boolean = true): Unit = {
+    this.isAI = isAI
     val resource = getClass.getResource("/view/CheckersBoard.fxml")
     if (resource == null) {
       throw new RuntimeException("CheckersBoard.fxml not found")
@@ -75,5 +77,9 @@ object MainApp extends JFXApp3 {
     stage.setScene(new Scene(root))
     stage.setTitle("Checkers Game")
     stage.show()
+  }
+
+  def isGameAI(): Boolean = {
+    isAI
   }
 }
