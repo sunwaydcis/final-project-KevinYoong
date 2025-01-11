@@ -253,14 +253,18 @@ class CheckersBoardController {
           val (endRow, endCol) = bestMove._2
           val piece = board.getPiece(startRow, startCol).get
 
+          val rowDiff = Math.abs(endRow - startRow)
           if (piece.isKing) {
-            val (_, occupiedSpaces) = MoveValidator.isValidKingMove(startRow, startCol, endRow, endCol, board, piece.color.toString, currentPlayer.color)
-            board.handleKingCapture(startRow, startCol, endRow, endCol, occupiedSpaces)
-          } else {
+            updateBoardVisuals(startRow, startCol, endRow, endCol)
+            val (isValid, occupiedSpaces) = MoveValidator.isValidKingMove(startRow, startCol, endRow, endCol, board, piece.color.toString, currentPlayer.color)
+            if (isValid) {
+              board.handleKingCapture(startRow, startCol, endRow, endCol, occupiedSpaces)
+            }
+          } else if (rowDiff == 2) {
             board.handleStandardCapture(startRow, startCol, endRow, endCol, updateBoardVisuals)
+          } else {
+            updateBoardVisuals(startRow, startCol, endRow, endCol)
           }
-
-          updateBoardVisuals(startRow, startCol, endRow, endCol)
           switchTurn() // Switch back to the user after AI move
         } else {
           println("AI has no valid moves left")
