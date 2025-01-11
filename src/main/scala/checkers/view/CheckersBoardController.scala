@@ -135,7 +135,6 @@ class CheckersBoardController {
     }
   }
 
-  @FXML
   private def handleStandardPieceMovement(event: MouseEvent): Unit = {
     val button = event.getSource.asInstanceOf[Button]
     val row = Option(GridPane.getRowIndex(button)).map(_.intValue()).getOrElse(0)
@@ -157,14 +156,10 @@ class CheckersBoardController {
         selectedPiece = piece
         selectedPieceRow = row
         selectedPieceCol = col
-        if (selectedPiece.isKing) {
-          println(s"Selected ${selectedPiece.color} king piece at row: $selectedPieceRow, col: $selectedPieceCol")
-        } else {
-          println(s"Selected ${selectedPiece.color} piece at row: $selectedPieceRow, col: $selectedPieceCol")
-        }
+        println(s"Selected ${selectedPiece.color} piece at row: $selectedPieceRow, col: $selectedPieceCol")
 
         // Highlight valid moves for the newly selected piece
-        val validMoves = MoveValidator.getValidMoves(selectedPieceRow, selectedPieceCol, board, selectedPiece.color.toString, currentPlayer.color, selectedPiece.isKing)
+        val validMoves = MoveValidator.getValidStandardMoves(selectedPieceRow, selectedPieceCol, board, selectedPiece.color.toString, currentPlayer.color)
         validMoves.foreach { case (validRow, validCol) =>
           val validButton = boardGrid.getChildren
             .filtered(node => Option(GridPane.getRowIndex(node)).map(_.intValue()).getOrElse(0) == validRow && Option(GridPane.getColumnIndex(node)).map(_.intValue()).getOrElse(0) == validCol)
@@ -179,9 +174,12 @@ class CheckersBoardController {
     if (selectedPiece != null) {
       println(s"Attempting to move ${selectedPiece.color} piece from ($selectedPieceRow, $selectedPieceCol) to ($row, $col)")
       if (MoveValidator.isValidStandardMove(selectedPieceRow, selectedPieceCol, row, col, board, selectedPiece.color.toString, currentPlayer.color, selectedPiece.isKing)) {
-        board.movePiece(selectedPieceRow, selectedPieceCol, row, col)
-        board.handleCapture(selectedPieceRow, selectedPieceCol, row, col)
-        updateBoardVisuals(selectedPieceRow, selectedPieceCol, row, col)
+        val rowDiff = Math.abs(row - selectedPieceRow)
+        if (rowDiff == 2) {
+          board.handleStandardCapture(selectedPieceRow, selectedPieceCol, row, col, updateBoardVisuals)
+        } else {
+          updateBoardVisuals(selectedPieceRow, selectedPieceCol, row, col)
+        }
         selectedPiece = null // Reset the selection to allow new selections
         switchTurn()
       } else {
@@ -216,7 +214,7 @@ class CheckersBoardController {
         println(s"Selected ${selectedPiece.color} king piece at row: $selectedPieceRow, col: $selectedPieceCol")
 
         // Highlight valid moves for the newly selected piece
-        val validMoves = MoveValidator.getValidMoves(selectedPieceRow, selectedPieceCol, board, selectedPiece.color.toString, currentPlayer.color, isKing = true)
+        val validMoves = MoveValidator.getValidKingMoves(selectedPieceRow, selectedPieceCol, board, selectedPiece.color.toString, currentPlayer.color)
         validMoves.foreach { case (validRow, validCol) =>
           val validButton = boardGrid.getChildren
             .filtered(node => Option(GridPane.getRowIndex(node)).map(_.intValue()).getOrElse(0) == validRow && Option(GridPane.getColumnIndex(node)).map(_.intValue()).getOrElse(0) == validCol)
@@ -230,9 +228,9 @@ class CheckersBoardController {
     // If no valid piece was selected but a piece is already selected, attempt to move it
     if (selectedPiece != null && selectedPiece.isKing) {
       println(s"Attempting to move ${selectedPiece.color} king piece from ($selectedPieceRow, $selectedPieceCol) to ($row, $col)")
+      println(s"Validating king move: ($selectedPieceRow, $selectedPieceCol) to ($row, $col)")
       if (MoveValidator.isValidKingMove(selectedPieceRow, selectedPieceCol, row, col, board, selectedPiece.color.toString, currentPlayer.color)) {
         board.movePiece(selectedPieceRow, selectedPieceCol, row, col)
-        board.handleCapture(selectedPieceRow, selectedPieceCol, row, col)
         updateBoardVisuals(selectedPieceRow, selectedPieceCol, row, col)
         selectedPiece = null // Reset the selection to allow new selections
         switchTurn()
@@ -255,8 +253,11 @@ class CheckersBoardController {
         val bestMove = ai.getBestMove()
         if (bestMove != null) {
           board.movePiece(bestMove._1._1, bestMove._1._2, bestMove._2._1, bestMove._2._2)
-          board.handleCapture(bestMove._1._1, bestMove._1._2, bestMove._2._1, bestMove._2._2)
-          updateBoardVisuals(bestMove._1._1, bestMove._1._2, bestMove._2._1, bestMove._2._2)
+          if (board.getPiece(bestMove._2._1, bestMove._2._2).exists(_.isKing)) {
+            board.handleKingCapture(bestMove._1._1, bestMove._1._2, bestMove._2._1, bestMove._2._2)
+          } else {
+            board.handleStandardCapture(bestMove._1._1, bestMove._1._2, bestMove._2._1, bestMove._2._2, updateBoardVisuals)
+          }
           switchTurn() // Switch back to the user after AI move
         } else {
           println("AI has no valid moves left")
@@ -293,44 +294,41 @@ class CheckersBoardController {
 
   // Update the visual representation of the board
   private def updateBoardVisuals(startRow: Int, startCol: Int, endRow: Int, endCol: Int): Unit = {
-    val button = boardGrid.getChildren
+    // Move the piece
+    board.movePiece(startRow, startCol, endRow, endCol)
+
+    // Update visuals for the moved piece
+    val newButton = boardGrid.getChildren
       .filtered(node => Option(GridPane.getRowIndex(node)).map(_.intValue()).getOrElse(0) == endRow && Option(GridPane.getColumnIndex(node)).map(_.intValue()).getOrElse(0) == endCol)
       .get(0).asInstanceOf[Button]
 
-    val piece = board.getPiece(endRow, endCol).get
-    val imagePath = if (piece.color == PieceColor.White) {
-      if (piece.isKing) "/images/white_king.png" else "/images/white_standard.png"
+    val movedPiece = board.getPiece(endRow, endCol).get
+    val imagePath = if (movedPiece.color == PieceColor.White) {
+      if (movedPiece.isKing) "/images/white_king.png" else "/images/white_standard.png"
     } else {
-      if (piece.isKing) "/images/black_king.png" else "/images/black_standard.png"
+      if (movedPiece.isKing) "/images/black_king.png" else "/images/black_standard.png"
     }
-    button.setGraphic(new ImageView(new Image(getClass.getResourceAsStream(imagePath))))
-    pieceMap(button) = (endRow, endCol)
+    newButton.setGraphic(new ImageView(new Image(getClass.getResourceAsStream(imagePath))))
+    pieceMap(newButton) = (endRow, endCol)
 
-    val oldButtonList = boardGrid.getChildren
+    // Clear the visual representation of the start position
+    val oldButton = boardGrid.getChildren
       .filtered(node => Option(GridPane.getRowIndex(node)).map(_.intValue()).getOrElse(0) == startRow && Option(GridPane.getColumnIndex(node)).map(_.intValue()).getOrElse(0) == startCol)
-      .asScala
-    if (oldButtonList.nonEmpty) {
-      val oldButton = oldButtonList.head.asInstanceOf[Button]
-      oldButton.setGraphic(null)
-      pieceMap.remove(oldButton)
-      println(s"Moved piece to row: $endRow, col: $endCol")
-    } else {
-      println("Old button not found")
-    }
+      .get(0).asInstanceOf[Button]
+    oldButton.setGraphic(null)
+    pieceMap.remove(oldButton)
 
     // Update the visual representation of the jumped piece
-    val rowDiff = Math.abs(endRow - startRow)
-    if (rowDiff == 2) {
-      val middleRow = (startRow + endRow) / 2
-      val middleCol = (startCol + endCol) / 2
-      val middleButtonList = boardGrid.getChildren
-        .filtered(node => Option(GridPane.getRowIndex(node)).map(_.intValue()).getOrElse(0) == middleRow && Option(GridPane.getColumnIndex(node)).map(_.intValue()).getOrElse(0) == middleCol)
+    val capturedPieces = board.getCapturedPieces()
+    capturedPieces.foreach { case (capturedRow, capturedCol) =>
+      val capturedButtonList = boardGrid.getChildren
+        .filtered(node => Option(GridPane.getRowIndex(node)).map(_.intValue()).getOrElse(0) == capturedRow && Option(GridPane.getColumnIndex(node)).map(_.intValue()).getOrElse(0) == capturedCol)
         .asScala
-      if (middleButtonList.nonEmpty) {
-        val middleButton = middleButtonList.head.asInstanceOf[Button]
-        middleButton.setGraphic(null)
-        pieceMap.remove(middleButton)
-        println(s"Removed jumped piece at row: $middleRow, col: $middleCol")
+      if (capturedButtonList.nonEmpty) {
+        val capturedButton = capturedButtonList.head.asInstanceOf[Button]
+        capturedButton.setGraphic(null)
+        pieceMap.remove(capturedButton)
+        println(s"Removed captured piece at row: $capturedRow, col: $capturedCol")
       }
     }
   }

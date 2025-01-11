@@ -1,10 +1,13 @@
 package checkers.model
 
 import checkers.MainApp
+import checkers.util.MoveValidator
+import checkers.model.PieceColor.PieceColor
 import scala.collection.mutable
 
 class Board {
   private val board: mutable.Map[(Int, Int), Piece] = mutable.Map()
+  private var capturedPieces: List[(Int, Int)] = List()
   var player1: Player = _
   var player2: Player = _
   var remainingWhitePieces: Int = 12
@@ -56,34 +59,55 @@ class Board {
     }
   }
 
+  def getCapturedPieces(): List[(Int, Int)] = {
+    val pieces = capturedPieces
+    capturedPieces = List() // Clear the list after returning
+    pieces
+  }
+
   private def removePiece(row: Int, col: Int): Unit = {
     board.remove((row, col))
   }
 
-  def handleCapture(startRow: Int, startCol: Int, endRow: Int, endCol: Int): Unit = {
+  def handleStandardCapture(startRow: Int, startCol: Int, endRow: Int, endCol: Int, updateBoardVisuals: (Int, Int, Int, Int) => Unit): Unit = {
     val rowDiff = Math.abs(endRow - startRow)
-    if (rowDiff == 2) {
+    if (rowDiff == 2) { // Check if this is a leap
       val middleRow = (startRow + endRow) / 2
       val middleCol = (startCol + endCol) / 2
+      println(s"Middle position: ($middleRow, $middleCol)")
       getPiece(middleRow, middleCol).foreach { jumpedPiece =>
-        if (MainApp.getSelectedColor().toLowerCase() == "white") {
-          if (jumpedPiece.color == PieceColor.White) {
-            remainingWhitePieces -= 1
-            println(s"Player 1 remaining pieces: $remainingWhitePieces")
-          } else {
-            remainingBlackPieces -= 1
-            println(s"Player 2 remaining pieces: $remainingBlackPieces")
-          }
-        } else if (MainApp.getSelectedColor().toLowerCase() == "black") {
-          if (jumpedPiece.color == PieceColor.White) {
-            remainingWhitePieces -= 1
-            println(s"Player 1 remaining pieces: $remainingWhitePieces")
-          } else {
-            remainingBlackPieces -= 1
-            println(s"Player 2 remaining pieces: $remainingBlackPieces")
-          }
-        }
+        updateBoardVisuals(startRow, startCol, endRow, endCol)
+        // Update the visual representation of the captured piece
+        updateBoardVisuals(middleRow, middleCol, middleRow, middleCol)
+        // Remove the middle piece
         removePiece(middleRow, middleCol)
+        println(s"Removed piece at ($middleRow, $middleCol)")
+      }
+    } else {
+      println("Invalid move: Standard capture requires a leap of 2 rows")
+    }
+  }
+
+  def handleKingCapture(startRow: Int, startCol: Int, endRow: Int, endCol: Int): Unit = {
+    // Implementation for king capture will be added later
+  }
+
+  private def updateRemainingPieces(capturedColor: PieceColor): Unit = {
+    if (MainApp.getSelectedColor().toLowerCase() == "white") {
+      if (capturedColor == PieceColor.White) {
+        remainingWhitePieces -= 1
+        println(s"Player 1 remaining pieces: $remainingWhitePieces")
+      } else {
+        remainingBlackPieces -= 1
+        println(s"Player 2 remaining pieces: $remainingBlackPieces")
+      }
+    } else if (MainApp.getSelectedColor().toLowerCase() == "black") {
+      if (capturedColor == PieceColor.Black) {
+        remainingBlackPieces -= 1
+        println(s"Player 1 remaining pieces: $remainingBlackPieces")
+      } else {
+        remainingWhitePieces -= 1
+        println(s"Player 2 remaining pieces: $remainingWhitePieces")
       }
     }
   }
