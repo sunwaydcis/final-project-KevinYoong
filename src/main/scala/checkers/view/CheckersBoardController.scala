@@ -95,10 +95,20 @@ class CheckersBoardController {
           val row = Option(GridPane.getRowIndex(button)).map(_.intValue()).getOrElse(0)
           val col = Option(GridPane.getColumnIndex(button)).map(_.intValue()).getOrElse(0)
           board.getPiece(row, col) match {
+            case Some(piece) if piece.isKing =>
+              println(s"Using handleKingPieceMovement for piece at ($row, $col)")
+              handleKingPieceMovement(event)
             case Some(_) =>
+              println(s"Using handleStandardPieceMovement for piece at ($row, $col)")
               handleStandardPieceMovement(event)
             case None =>
-              handleStandardPieceMovement(event)
+              if (selectedPiece != null && selectedPiece.isKing) {
+                println(s"Using handleKingPieceMovement for empty space at ($row, $col)")
+                handleKingPieceMovement(event)
+              } else {
+                println(s"Using handleStandardPieceMovement for empty space at ($row, $col)")
+                handleStandardPieceMovement(event)
+              }
           }
         })
       case _ =>

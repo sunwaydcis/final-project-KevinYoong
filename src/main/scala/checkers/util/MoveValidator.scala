@@ -96,21 +96,16 @@ object MoveValidator {
         )
       }
 
-      println(s"Evaluating potential moves for piece at ($startRow, $startCol): ${potentialMoves.mkString(", ")}")
-
       potentialMoves.filter { case (endRow, endCol) =>
         isWithinBounds(endRow, endCol) &&
           (if (isKing) {
-            println(s"Using isValidKingMove for piece at ($startRow, $startCol) to ($endRow, $endCol)")
             isValidKingMove(startRow, startCol, endRow, endCol, board, pieceColor, currentTurn)
           } else {
             val isForwardMove = (pieceColor == "White" && endRow < startRow) || (pieceColor == "Black" && endRow > startRow)
-            println(s"Using isValidStandardMove for piece at ($startRow, $startCol) to ($endRow, $endCol)")
             isForwardMove && isValidStandardMove(startRow, startCol, endRow, endCol, board, pieceColor, currentTurn, isKing)
           })
       }
     }
-
     println(s"Valid moves for piece at ($startRow, $startCol): ${validMoves.mkString(", ")}")
     validMoves
   }
