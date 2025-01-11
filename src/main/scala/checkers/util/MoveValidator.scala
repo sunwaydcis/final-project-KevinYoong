@@ -45,7 +45,7 @@ object MoveValidator {
     }
   }
 
-  def isValidKingMove(startRow: Int, startCol: Int, endRow: Int, endCol: Int, board: Board, pieceColor: String, currentTurn: PieceColor.Value): Boolean = {
+  def isValidKingMove(startRow: Int, startCol: Int, endRow: Int, endCol: Int, board: Board, pieceColor: String, currentTurn: PieceColor.Value): (Boolean, List[(Int, Int)]) = {
     val rowDiff = Math.abs(endRow - startRow)
     val colDiff = Math.abs(endCol - startCol)
 
@@ -58,23 +58,25 @@ object MoveValidator {
       var col = startCol + colStep
       var encounteredPiece = false
       var adjacentOpponentPiece = false
+      val occupiedPieces = scala.collection.mutable.ListBuffer[(Int, Int)]()
 
       while (row != endRow && col != endCol) {
         board.getPiece(row, col) match {
           case Some(piece) =>
             // If an encountered piece is of the same color, the move is invalid
             if (piece.color.toString == pieceColor) {
-              return false
+              return (false, List())
             }
             // If an encountered piece is of the opposite color and we have already encountered a piece
             if (encounteredPiece) {
               // Check if the pieces are adjacent
               if (adjacentOpponentPiece) {
-                return false
+                return (false, List())
               }
               adjacentOpponentPiece = true
             }
             encounteredPiece = true
+            occupiedPieces += ((row, col))
           case None =>
             // If an empty space is encountered after a piece, reset the adjacent opponent piece flag
             adjacentOpponentPiece = false
@@ -84,12 +86,12 @@ object MoveValidator {
       }
       // Ensure the destination is empty
       if (board.getPiece(endRow, endCol).isEmpty) {
-        true
+        (true, occupiedPieces.toList)
       } else {
-        false
+        (false, List())
       }
     } else {
-      false
+      (false, List())
     }
   }
 
@@ -129,7 +131,7 @@ object MoveValidator {
     val validMoves = directions.flatMap { case (rowOffset, colOffset) =>
       (1 to 7).map(i => (startRow + i * rowOffset, startCol + i * colOffset)).toList.filter { case (endRow, endCol) =>
         isWithinBounds(endRow, endCol) && {
-          val isValid = isValidKingMove(startRow, startCol, endRow, endCol, board, pieceColor, currentTurn)
+          val (isValid, _) = isValidKingMove(startRow, startCol, endRow, endCol, board, pieceColor, currentTurn)
           if (!isValid) {
             board.getPiece(endRow, endCol).foreach(piece => println(s"Detected occupied space at ($endRow, $endCol) with ${piece.color.toString.toLowerCase} piece"))
           }

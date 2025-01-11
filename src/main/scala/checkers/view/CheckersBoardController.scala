@@ -228,7 +228,9 @@ class CheckersBoardController {
     // If no valid piece was selected but a piece is already selected, attempt to move it
     if (selectedPiece != null && selectedPiece.isKing) {
       println(s"Attempting to move ${selectedPiece.color} king piece from ($selectedPieceRow, $selectedPieceCol) to ($row, $col)")
-      if (MoveValidator.isValidKingMove(selectedPieceRow, selectedPieceCol, row, col, board, selectedPiece.color.toString, currentPlayer.color)) {
+      val (isValid, occupiedSpaces) = MoveValidator.isValidKingMove(selectedPieceRow, selectedPieceCol, row, col, board, selectedPiece.color.toString, currentPlayer.color)
+      if (isValid) {
+        println(s"Occupied spaces during the move: ${occupiedSpaces.mkString(", ")}")
         updateBoardVisuals(selectedPieceRow, selectedPieceCol, row, col)
         selectedPiece = null // Reset the selection to allow new selections
         switchTurn()
