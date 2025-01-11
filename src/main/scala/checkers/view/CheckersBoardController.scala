@@ -246,7 +246,34 @@ class CheckersBoardController {
         println(s"Occupied spaces during the move: ${occupiedSpaces.mkString(", ")}")
         board.handleKingCapture(selectedPieceRow, selectedPieceCol, row, col, occupiedSpaces)
         updateBoardVisuals(selectedPieceRow, selectedPieceCol, row, col)
+
+        // Check for further captures using findCaptureMoves
+        val furtherCaptures = MoveValidator.findCaptureMoves(row, col, board, selectedPiece.color.toString, isKing = true)
+        if (furtherCaptures.nonEmpty) {
+          checkturn += 1
+          selectedPieceRow = row
+          selectedPieceCol = col
+          selectedPiece = board.getPiece(row, col).get // Automatically select the piece that can capture further
+          println(s"Further captures available for piece at ($selectedPieceRow, $selectedPieceCol)")
+          skipButton.setDisable(false) // Enable the skip button when further captures are available
+          // If checkturn is greater than 0, only allow moving the selected piece
+          if (checkturn > 0 && (row != selectedPieceRow || col != selectedPieceCol)) {
+            println("You must continue moving the selected piece")
+            return
+          }
+          // Highlight valid moves for the newly selected piece
+          val validMoves = MoveValidator.getValidKingMoves(selectedPieceRow, selectedPieceCol, board, selectedPiece.color.toString, currentPlayer.color)
+          validMoves.foreach { case (validRow, validCol) =>
+            val validButton = boardGrid.getChildren
+              .filtered(node => Option(GridPane.getRowIndex(node)).map(_.intValue()).getOrElse(0) == validRow && Option(GridPane.getColumnIndex(node)).map(_.intValue()).getOrElse(0) == validCol)
+              .get(0).asInstanceOf[Button]
+            highlightValidMove(validButton)
+          }
+          return
+        }
         selectedPiece = null // Reset the selection to allow new selections
+        checkturn = 0
+        skipButton.setDisable(true) // Disable the skip button when the turn is switched
         switchTurn()
       } else {
         println("Invalid move or destination occupied")

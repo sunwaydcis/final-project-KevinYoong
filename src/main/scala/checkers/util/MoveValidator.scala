@@ -167,7 +167,7 @@ object MoveValidator {
         List((-1, -1), (-1, 1)) // Black pieces move upwards
       }
     }
-    
+
     val capturePaths = scala.collection.mutable.ListBuffer[List[(Int, Int)]]()
 
     def exploreCapturePath(currentRow: Int, currentCol: Int, visited: Set[(Int, Int)], currentPath: List[(Int, Int)]): Unit = {
@@ -182,15 +182,19 @@ object MoveValidator {
         while (isWithinBounds(endRow, endCol) && !visited.contains((midRow, midCol)) && !visited.contains((endRow, endCol))) {
           board.getPiece(midRow, midCol) match {
             case Some(midPiece) if midPiece.color != PieceColor.withName(pieceColor) =>
-              if (board.getPiece(endRow, endCol).isEmpty) {
-                canCaptureFurther = true
-                val newVisited = visited + ((midRow, midCol), (endRow, endCol))
-                exploreCapturePath(
-                  endRow,
-                  endCol,
-                  newVisited,
-                  currentPath :+ (endRow, endCol)
-                )
+              if (isKing) {
+                val (isValid, _) = MoveValidator.isValidKingMove(currentRow, currentCol, endRow, endCol, board, pieceColor, PieceColor.withName(pieceColor))
+                if (isValid && board.getPiece(endRow, endCol).isEmpty) {
+                  canCaptureFurther = true
+                  val newVisited = visited + ((midRow, midCol), (endRow, endCol))
+                  exploreCapturePath(endRow, endCol, newVisited, currentPath :+ (endRow, endCol))
+                }
+              } else {
+                if (board.getPiece(endRow, endCol).isEmpty) {
+                  canCaptureFurther = true
+                  val newVisited = visited + ((midRow, midCol), (endRow, endCol))
+                  exploreCapturePath(endRow, endCol, newVisited, currentPath :+ (endRow, endCol))
+                }
               }
             case _ => // No capture possible in this direction
           }
