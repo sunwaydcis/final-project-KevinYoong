@@ -79,6 +79,6 @@ class Checkers_AI(board: Board, player2Color: PieceColor.Value, player1Color: Pi
       row <- 0 until 8
       col <- 0 until 8
       piece <- board.getPiece(row, col) if piece.color == color
-    } yield MoveValidator.getValidMoves(row, col, board, piece.color.toString, color).map((row, col) -> _)).flatten
+    } yield MoveValidator.getValidMoves(row, col, board, piece.color.toString, color, piece.isKing).map((row, col) -> _)).flatten
   }
 }
