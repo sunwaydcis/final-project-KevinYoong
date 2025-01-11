@@ -80,8 +80,8 @@ class CheckersBoardController {
     if (isAI) {
       ai = new Checkers_AI(board, player2.color, player1.color)
     }
-    println(s"Player 1 is ${player1.name} with color ${player1.color}")
-    println(s"Player 2 is ${player2.name} with color ${player2.color}")
+    println(s"Player 1 with color ${player1.color}")
+    println(s"Player 2 with color ${player2.color}")
     println(s"Current player is ${currentPlayer.name} moving ${currentPlayer.color} pieces")
   }
 
@@ -96,17 +96,13 @@ class CheckersBoardController {
           val col = Option(GridPane.getColumnIndex(button)).map(_.intValue()).getOrElse(0)
           board.getPiece(row, col) match {
             case Some(piece) if piece.isKing =>
-              println(s"Using handleKingPieceMovement for piece at ($row, $col)")
               handleKingPieceMovement(event)
             case Some(_) =>
-              println(s"Using handleStandardPieceMovement for piece at ($row, $col)")
               handleStandardPieceMovement(event)
             case None =>
               if (selectedPiece != null && selectedPiece.isKing) {
-                println(s"Using handleKingPieceMovement for empty space at ($row, $col)")
                 handleKingPieceMovement(event)
               } else {
-                println(s"Using handleStandardPieceMovement for empty space at ($row, $col)")
                 handleStandardPieceMovement(event)
               }
           }

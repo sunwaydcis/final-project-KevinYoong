@@ -74,7 +74,6 @@ class Board {
     if (rowDiff == 2) { // Check if this is a leap
       val middleRow = (startRow + endRow) / 2
       val middleCol = (startCol + endCol) / 2
-      println(s"Middle position: ($middleRow, $middleCol)")
       getPiece(middleRow, middleCol).foreach { jumpedPiece =>
         updateBoardVisuals(startRow, startCol, endRow, endCol)
         // Update the visual representation of the captured piece

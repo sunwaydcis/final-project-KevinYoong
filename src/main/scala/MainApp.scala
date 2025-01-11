@@ -55,7 +55,6 @@ object MainApp extends JFXApp3 {
     // Check if the user clicked OK and update the selectedColor
     if (control.okClicked) {
       selectedColor = control.getSelectedColor() // Assign the selected color from the controller
-      println(s"Selected color: $selectedColor")
     }
     control.okClicked
   }

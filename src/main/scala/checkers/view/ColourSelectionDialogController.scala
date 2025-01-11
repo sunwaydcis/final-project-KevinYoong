@@ -35,12 +35,10 @@ class ColourSelectionDialogController {
       selectedColor = "White"
       whiteButton.setStyle("-fx-background-color: #ADD8E6;")
       blackButton.setStyle("")
-      println(s"Selected color: $selectedColor")
     } else if (button == blackButton) {
       selectedColor = "Black"
       blackButton.setStyle("-fx-background-color: #ADD8E6;")
       whiteButton.setStyle("")
-      println(s"Selected color: $selectedColor")
     }
   }
 
