@@ -28,15 +28,26 @@ class CheckersBoardController {
   private val board = new Board()
   private var currentPlayer: Player = _
   private var ai: Checkers_AI = _
+  var isAI: Boolean = _
   private var player1: Player = _
   private var player2: Player = _
+  private var aiTurnTaken: Boolean = false
 
   private def setSelectedColor(color: String): Unit = {
     selectedColor = MainApp.getSelectedColor()
     if (selectedColor == null) {
-      throw new IllegalStateException("Selected color must be...")
-    } else{
+      throw new IllegalStateException("Selected color must be set before initializing players")
+    } else {
       println(s"selectedColor is: $selectedColor")
+    }
+  }
+
+  def initializeGame(isAI: Boolean): Unit = {
+    this.isAI = isAI
+    initializePlayers()
+    if (isAI && currentPlayer == player2 && !aiTurnTaken) {
+      handleAITurn()
+      aiTurnTaken = true
     }
   }
 
@@ -66,23 +77,17 @@ class CheckersBoardController {
     }
 
     board.setPlayers(player1, player2)
-    ai = new Checkers_AI(board, player2.color, player1.color)
+    if (isAI) {
+      ai = new Checkers_AI(board, player2.color, player1.color)
+    }
     println(s"Player 1 is ${player1.name} with color ${player1.color}")
     println(s"Player 2 is ${player2.name} with color ${player2.color}")
     println(s"Current player is ${currentPlayer.name} moving ${currentPlayer.color} pieces")
-
-    // If the AI is the current player, make the first move
-    if (currentPlayer == player2) {
-      handleAITurn()
-    }
   }
 
   @FXML
   def initialize(): Unit = {
     setSelectedColor(selectedColor)
-    if (player1 == null || player2 == null) {
-      initializePlayers()
-    }
     initializePieces()
     boardGrid.getChildren.forEach {
       case button: Button =>
@@ -193,13 +198,12 @@ class CheckersBoardController {
       })
     }).start()
   }
-  
+
   private def highlightValidMove(button: Button): Unit = {
     val circle = new Circle(5, Color.WHITE)
     circle.setMouseTransparent(true) // Make sure the circle does not interfere with button clicks
     button.setGraphic(circle)
   }
-
 
   private def switchTurn(): Unit = {
     currentPlayer.isTurn = false
@@ -207,7 +211,7 @@ class CheckersBoardController {
     currentPlayer.isTurn = true
     println(s"Switched turn. It's now ${currentPlayer.name}'s turn")
 
-    if (currentPlayer == player2) {
+    if (isAI && currentPlayer == player2) {
       handleAITurn()
     }
   }

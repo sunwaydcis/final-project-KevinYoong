@@ -12,12 +12,14 @@ import scalafx.application.Platform
 class MainMenuController {
 
   @FXML private var playAgainstAIButton: Button = _
+  @FXML private var playAgainstFriendButton: Button = _
   @FXML private var quitGameButton: Button = _
   @FXML private var mediaView: MediaView = _
 
   @FXML
   def initialize(): Unit = {
     playAgainstAIButton.setOnAction(_ => handlePlayAgainstAI())
+    playAgainstFriendButton.setOnAction(_ => handlePlayAgainstFriend())
     quitGameButton.setOnAction(_ => handleQuitGame())
     setupMediaPlayer()
   }
@@ -52,6 +54,20 @@ class MainMenuController {
       val selectedColor = MainApp.getSelectedColor()
       println(s"Color selected: $selectedColor, moving to game scene")
       MainApp.showCheckersBoard()
+    } else {
+      // Logic to stay in the main menu
+      println("Color selection canceled, staying in main menu")
+    }
+  }
+  
+  @FXML
+  def handlePlayAgainstFriend(): Unit = {
+    val okClicked = MainApp.showColourSelectionDialog()
+    if (okClicked) {
+      // Logic to move to the game scene without AI
+      val selectedColor = MainApp.getSelectedColor()
+      println(s"Color selected: $selectedColor, moving to game scene for two players")
+      MainApp.showCheckersBoard(isAI = false)
     } else {
       // Logic to stay in the main menu
       println("Color selection canceled, staying in main menu")

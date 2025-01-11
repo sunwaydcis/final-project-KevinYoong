@@ -63,7 +63,7 @@ object MainApp extends JFXApp3 {
     selectedColor
   }
 
-  def showCheckersBoard(): Unit = {
+  def showCheckersBoard(isAI: Boolean = true): Unit = {
     val resource = getClass.getResource("/view/CheckersBoard.fxml")
     if (resource == null) {
       throw new RuntimeException("CheckersBoard.fxml not found")
@@ -71,6 +71,7 @@ object MainApp extends JFXApp3 {
     val loader = new FXMLLoader(resource)
     val root = loader.load[Parent]() // Load the FXML file and get the root node
     val controller = loader.getController[checkers.view.CheckersBoardController]
+    controller.initializeGame(isAI)
     stage.setScene(new Scene(root))
     stage.setTitle("Checkers Game")
     stage.show()
