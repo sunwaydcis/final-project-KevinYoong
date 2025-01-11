@@ -379,7 +379,7 @@ class CheckersBoardController {
     oldButton.setGraphic(null)
     pieceMap.remove(oldButton)
 
-    // Update the visual representation of the jumped piece
+    // Update the visual representation of the captured piece
     val capturedPieces = board.getCapturedPieces()
     capturedPieces.foreach { case (capturedRow, capturedCol) =>
       val capturedButtonList = boardGrid.getChildren

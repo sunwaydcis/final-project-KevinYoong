@@ -1,8 +1,7 @@
 package checkers.model
 
 import checkers.MainApp
-import checkers.util.MoveValidator
-import checkers.model.PieceColor.PieceColor
+
 import scala.collection.mutable
 
 class Board {
@@ -74,7 +73,7 @@ class Board {
     if (rowDiff == 2) { // Check if this is a leap
       val middleRow = (startRow + endRow) / 2
       val middleCol = (startCol + endCol) / 2
-      getPiece(middleRow, middleCol).foreach { jumpedPiece =>
+      getPiece(middleRow, middleCol).foreach { capturedPiece =>
         updateBoardVisuals(startRow, startCol, endRow, endCol)
         // Update the visual representation of the captured piece
         updateBoardVisuals(middleRow, middleCol, middleRow, middleCol)
@@ -95,33 +94,6 @@ class Board {
 
     // Add the occupied spaces to the captured pieces list
     capturedPieces ++= occupiedSpaces
-
-    // Update the remaining pieces count
-    occupiedSpaces.foreach { case (row, col) =>
-      getPiece(row, col).foreach { piece =>
-        updateRemainingPieces(piece.color)
-      }
-    }
-  }
-
-  private def updateRemainingPieces(capturedColor: PieceColor): Unit = {
-    if (MainApp.getSelectedColor().toLowerCase() == "white") {
-      if (capturedColor == PieceColor.White) {
-        remainingWhitePieces -= 1
-        println(s"Player 1 remaining pieces: $remainingWhitePieces")
-      } else {
-        remainingBlackPieces -= 1
-        println(s"Player 2 remaining pieces: $remainingBlackPieces")
-      }
-    } else if (MainApp.getSelectedColor().toLowerCase() == "black") {
-      if (capturedColor == PieceColor.Black) {
-        remainingBlackPieces -= 1
-        println(s"Player 1 remaining pieces: $remainingBlackPieces")
-      } else {
-        remainingWhitePieces -= 1
-        println(s"Player 2 remaining pieces: $remainingWhitePieces")
-      }
-    }
   }
 
   def winner(): Option[Player] = {
