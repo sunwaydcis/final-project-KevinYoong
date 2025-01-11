@@ -49,37 +49,41 @@ object MoveValidator {
     val rowDiff = Math.abs(endRow - startRow)
     val colDiff = Math.abs(endCol - startCol)
 
-    // Check if the move is diagonal
-    if (rowDiff == colDiff && rowDiff > 0) {
+    if (rowDiff == colDiff && rowDiff > 0) { // Check if the move is diagonal
       val rowStep = (endRow - startRow) / rowDiff
       val colStep = (endCol - startCol) / colDiff
 
       var row = startRow + rowStep
       var col = startCol + colStep
       var encounteredPiece = false
-      var adjacentOpponentPiece = false
+      var consecutiveOpponentPieces = 0 // Track consecutive opponent pieces
       val occupiedPieces = scala.collection.mutable.ListBuffer[(Int, Int)]()
 
       while (row != endRow && col != endCol) {
         board.getPiece(row, col) match {
           case Some(piece) =>
-            // If an encountered piece is of the same color, the move is invalid
             if (piece.color.toString == pieceColor) {
+              // Same-color piece blocks the path
               return (false, List())
             }
-            // If an encountered piece is of the opposite color and we have already encountered a piece
+
+            // Opponent piece encountered
             if (encounteredPiece) {
-              // Check if the pieces are adjacent
-              if (adjacentOpponentPiece) {
-                return (false, List())
-              }
-              adjacentOpponentPiece = true
+              consecutiveOpponentPieces += 1
+            } else {
+              consecutiveOpponentPieces = 1
             }
+
+            if (consecutiveOpponentPieces >= 2) {
+              // Block the move if there are two consecutive opponent pieces
+              return (false, List())
+            }
+
             encounteredPiece = true
             occupiedPieces += ((row, col))
           case None =>
-            // If an empty space is encountered after a piece, reset the adjacent opponent piece flag
-            adjacentOpponentPiece = false
+            // Reset consecutive opponent count if an empty space is encountered
+            consecutiveOpponentPieces = 0
         }
         row += rowStep
         col += colStep
