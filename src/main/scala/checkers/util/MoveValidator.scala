@@ -1,7 +1,7 @@
 package checkers.util
 
 import checkers.MainApp
-import checkers.model.{Board, PieceColor}
+import checkers.model.{Piece, Board, PieceColor}
 
 object MoveValidator {
 
@@ -19,12 +19,12 @@ object MoveValidator {
     val rowDiff = Math.abs(endRow - startRow)
     val colDiff = Math.abs(endCol - startCol)
 
-    val isForwardMove = isKing || ( // Allow both directions for king pieces
+    val isForwardMove = isKing || (// Allow both directions for king pieces
       (pieceColor == "White" && currentTurn == PieceColor.White && MainApp.getSelectedColor() == "White" && endRow < startRow) ||
-        (pieceColor == "Black" && currentTurn == PieceColor.Black && MainApp.getSelectedColor() == "White" && endRow > startRow) ||
-        (pieceColor == "White" && currentTurn == PieceColor.White && MainApp.getSelectedColor() == "Black" && endRow > startRow) ||
-        (pieceColor == "Black" && currentTurn == PieceColor.Black && MainApp.getSelectedColor() == "Black" && endRow < startRow)
-      )
+      (pieceColor == "Black" && currentTurn == PieceColor.Black && MainApp.getSelectedColor() == "White" && endRow > startRow) ||
+      (pieceColor == "White" && currentTurn == PieceColor.White && MainApp.getSelectedColor() == "Black" && endRow > startRow) ||
+      (pieceColor == "Black" && currentTurn == PieceColor.Black && MainApp.getSelectedColor() == "Black" && endRow < startRow)
+    )
 
     if ((isForwardMove || isKing) && rowDiff == colDiff) {
       if (rowDiff == 1) {
@@ -46,66 +46,83 @@ object MoveValidator {
   }
 
   def isValidKingMove(startRow: Int, startCol: Int, endRow: Int, endCol: Int, board: Board, pieceColor: String, currentTurn: PieceColor.Value): Boolean = {
-    if (PieceColor.withName(pieceColor) != currentTurn) {
-      println(s"Not $pieceColor's turn")
-      return false
-    }
-
     val rowDiff = Math.abs(endRow - startRow)
     val colDiff = Math.abs(endCol - startCol)
 
-    if (rowDiff != colDiff) return false // Ensure the move is diagonal
+    // Check if the move is diagonal
+    if (rowDiff == colDiff && rowDiff > 0) {
+      val rowStep = (endRow - startRow) / rowDiff
+      val colStep = (endCol - startCol) / colDiff
 
-    val rowStep = if (endRow > startRow) 1 else -1
-    val colStep = if (endCol > startCol) 1 else -1
+      var row = startRow + rowStep
+      var col = startCol + colStep
 
-    var row = startRow + rowStep
-    var col = startCol + colStep
-
-    while (row != endRow && col != endCol) {
-      if (board.getPiece(row, col).isDefined) return false // Path is blocked
-      row += rowStep
-      col += colStep
+      while (row != endRow && col != endCol) {
+        board.getPiece(row, col) match {
+          case Some(piece) =>
+            // If an encountered piece is of the same color, the move is invalid
+            if (piece.color.toString == pieceColor) {
+              println(s"Invalid move: Encountered own piece at ($row, $col)")
+              return false
+            }
+          case None =>
+          // Continue if no piece is encountered
+        }
+        row += rowStep
+        col += colStep
+      }
+      // Ensure the destination is empty
+      board.getPiece(endRow, endCol).isEmpty
+    } else {
+      false
     }
-
-    // Ensure the destination is empty
-    if (board.getPiece(endRow, endCol).isDefined) {
-      println(s"Destination ($endRow, $endCol) is occupied")
-      return false
-    }
-
-    true
   }
 
-  def getValidMoves(startRow: Int, startCol: Int, board: Board, pieceColor: String, currentTurn: PieceColor.Value, isKing: Boolean): List[(Int, Int)] = {
-    val directions = if (isKing) {
-      List((-1, -1), (-1, 1), (1, -1), (1, 1))
-    } else if (pieceColor == "White") {
-      List((-1, -1), (-1, 1)) // White pieces move upwards
+  def getValidStandardMoves(startRow: Int, startCol: Int, board: Board, pieceColor: String, currentTurn: PieceColor.Value): List[(Int, Int)] = {
+    val directions = if (MainApp.getSelectedColor() == "White") {
+      if (pieceColor == "White") {
+        List((-1, -1), (-1, 1)) // White pieces move upwards
+      } else {
+        List((1, -1), (1, 1)) // Black pieces move downwards
+      }
     } else {
-      List((1, -1), (1, 1)) // Black pieces move downwards
+      if (pieceColor == "White") {
+        List((1, -1), (1, 1)) // White pieces move downwards
+      } else {
+        List((-1, -1), (-1, 1)) // Black pieces move upwards
+      }
     }
 
     val validMoves = directions.flatMap { case (rowOffset, colOffset) =>
-      val potentialMoves = if (isKing) {
-        (1 to 7).map(i => (startRow + i * rowOffset, startCol + i * colOffset)).toList
-      } else {
-        List(
-          (startRow + rowOffset, startCol + colOffset), // Regular move
-          (startRow + 2 * rowOffset, startCol + 2 * colOffset) // Jump move
-        )
-      }
-
-      potentialMoves.filter { case (endRow, endCol) =>
+      List(
+        (startRow + rowOffset, startCol + colOffset), // Regular move
+        (startRow + 2 * rowOffset, startCol + 2 * colOffset) // Jump move
+      ).filter { case (endRow, endCol) =>
         isWithinBounds(endRow, endCol) &&
-          (if (isKing) {
-            isValidKingMove(startRow, startCol, endRow, endCol, board, pieceColor, currentTurn)
-          } else {
-            val isForwardMove = (pieceColor == "White" && endRow < startRow) || (pieceColor == "Black" && endRow > startRow)
-            isForwardMove && isValidStandardMove(startRow, startCol, endRow, endCol, board, pieceColor, currentTurn, isKing)
-          })
+          ((pieceColor == "White" && endRow < startRow) || (pieceColor == "Black" && endRow > startRow)) &&
+          isValidStandardMove(startRow, startCol, endRow, endCol, board, pieceColor, currentTurn, isKing = false)
       }
     }
+
+    println(s"Valid moves for piece at ($startRow, $startCol): ${validMoves.mkString(", ")}")
+    validMoves
+  }
+
+  def getValidKingMoves(startRow: Int, startCol: Int, board: Board, pieceColor: String, currentTurn: PieceColor.Value): List[(Int, Int)] = {
+    val directions = List((-1, -1), (-1, 1), (1, -1), (1, 1))
+
+    val validMoves = directions.flatMap { case (rowOffset, colOffset) =>
+      (1 to 7).map(i => (startRow + i * rowOffset, startCol + i * colOffset)).toList.filter { case (endRow, endCol) =>
+        isWithinBounds(endRow, endCol) && {
+          val isValid = isValidKingMove(startRow, startCol, endRow, endCol, board, pieceColor, currentTurn)
+          if (!isValid) {
+            board.getPiece(endRow, endCol).foreach(piece => println(s"Detected occupied space at ($endRow, $endCol) with ${piece.color.toString.toLowerCase} piece"))
+          }
+          isValid
+        }
+      }
+    }
+
     println(s"Valid moves for piece at ($startRow, $startCol): ${validMoves.mkString(", ")}")
     validMoves
   }
