@@ -231,6 +231,7 @@ class CheckersBoardController {
       val (isValid, occupiedSpaces) = MoveValidator.isValidKingMove(selectedPieceRow, selectedPieceCol, row, col, board, selectedPiece.color.toString, currentPlayer.color)
       if (isValid) {
         println(s"Occupied spaces during the move: ${occupiedSpaces.mkString(", ")}")
+        board.handleKingCapture(selectedPieceRow, selectedPieceCol, row, col, occupiedSpaces)
         updateBoardVisuals(selectedPieceRow, selectedPieceCol, row, col)
         selectedPiece = null // Reset the selection to allow new selections
         switchTurn()
@@ -252,12 +253,18 @@ class CheckersBoardController {
       Platform.runLater(() => {
         val bestMove = ai.getBestMove()
         if (bestMove != null) {
-          board.movePiece(bestMove._1._1, bestMove._1._2, bestMove._2._1, bestMove._2._2)
-          if (board.getPiece(bestMove._2._1, bestMove._2._2).exists(_.isKing)) {
-            board.handleKingCapture(bestMove._1._1, bestMove._1._2, bestMove._2._1, bestMove._2._2)
+          val (startRow, startCol) = bestMove._1
+          val (endRow, endCol) = bestMove._2
+          val piece = board.getPiece(startRow, startCol).get
+
+          if (piece.isKing) {
+            val (_, occupiedSpaces) = MoveValidator.isValidKingMove(startRow, startCol, endRow, endCol, board, piece.color.toString, currentPlayer.color)
+            board.handleKingCapture(startRow, startCol, endRow, endCol, occupiedSpaces)
           } else {
-            board.handleStandardCapture(bestMove._1._1, bestMove._1._2, bestMove._2._1, bestMove._2._2, updateBoardVisuals)
+            board.handleStandardCapture(startRow, startCol, endRow, endCol, updateBoardVisuals)
           }
+
+          updateBoardVisuals(startRow, startCol, endRow, endCol)
           switchTurn() // Switch back to the user after AI move
         } else {
           println("AI has no valid moves left")

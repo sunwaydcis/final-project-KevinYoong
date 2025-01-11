@@ -88,8 +88,21 @@ class Board {
     }
   }
 
-  def handleKingCapture(startRow: Int, startCol: Int, endRow: Int, endCol: Int): Unit = {
-    // Implementation for king capture will be added later
+  def handleKingCapture(startRow: Int, startCol: Int, endRow: Int, endCol: Int, occupiedSpaces: List[(Int, Int)]): Unit = {
+    // Remove the pieces at the occupied spaces
+    occupiedSpaces.foreach { case (row, col) =>
+      removePiece(row, col)
+    }
+
+    // Add the occupied spaces to the captured pieces list
+    capturedPieces ++= occupiedSpaces
+
+    // Update the remaining pieces count
+    occupiedSpaces.foreach { case (row, col) =>
+      getPiece(row, col).foreach { piece =>
+        updateRemainingPieces(piece.color)
+      }
+    }
   }
 
   private def updateRemainingPieces(capturedColor: PieceColor): Unit = {
