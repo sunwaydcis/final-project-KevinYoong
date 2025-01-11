@@ -2,7 +2,7 @@ package checkers.model
 
 object PieceType extends Enumeration {
   type PieceType = Value
-  val Standard: Value = Value
+  val Standard, King = Value
 }
 
 object PieceColor extends Enumeration {
@@ -10,6 +10,17 @@ object PieceColor extends Enumeration {
   val White, Black = Value
 }
 
-import checkers.model.PieceColor.*
+import checkers.model.PieceType._
+import checkers.model.PieceColor._
 
-case class Piece(pieceType: PieceType.Value, color: PieceColor.Value, var isKing: Boolean = false)
+class Piece(val pieceType: PieceType, val color: PieceColor) {
+  // Method to promote a piece to a king
+  def promoteToKing(): Piece = {
+    new Piece(PieceType.King, this.color)
+  }
+
+  // Method to check if the piece is a king
+  def isKing: Boolean = {
+    this.pieceType == PieceType.King
+  }
+}

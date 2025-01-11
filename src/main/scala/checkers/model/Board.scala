@@ -43,22 +43,21 @@ class Board {
     board.update((endRow, endCol), piece.get)
 
     // Check if the piece should be promoted to a king
-    promoteKing(endRow, endCol)
+    if (MainApp.getSelectedColor().toLowerCase() == "white") {
+      if ((piece.get.color == PieceColor.White && endRow == 0) || (piece.get.color == PieceColor.Black && endRow == 7)) {
+        board.update((endRow, endCol), piece.get.promoteToKing())
+        println(s"Piece at ($endRow, $endCol) promoted to king")
+      }
+    } else if (MainApp.getSelectedColor().toLowerCase() == "black") {
+      if ((piece.get.color == PieceColor.White && endRow == 7) || (piece.get.color == PieceColor.Black && endRow == 0)) {
+        board.update((endRow, endCol), piece.get.promoteToKing())
+        println(s"Piece at ($endRow, $endCol) promoted to king")
+      }
+    }
   }
 
   private def removePiece(row: Int, col: Int): Unit = {
     board.remove((row, col))
-  }
-
-  private def promoteKing(row: Int, col: Int): Unit = {
-    getPiece(row, col).foreach { piece =>
-      if ((MainApp.getSelectedColor() == "White" && piece.color == PieceColor.White && row == 0) ||
-        (MainApp.getSelectedColor() == "White" && piece.color == PieceColor.Black && row == 7) ||
-        (MainApp.getSelectedColor() == "Black" && piece.color == PieceColor.Black && row == 0) ||
-        (MainApp.getSelectedColor() == "Black" && piece.color == PieceColor.White && row == 7)) {
-        piece.isKing = true
-      }
-    }
   }
 
   def handleCapture(startRow: Int, startCol: Int, endRow: Int, endCol: Int): Unit = {
