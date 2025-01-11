@@ -1,6 +1,7 @@
 package checkers.model
 
 import checkers.MainApp
+import checkers.model.PieceColor.PieceColor
 
 import scala.collection.mutable
 
@@ -80,6 +81,7 @@ class Board {
         // Remove the middle piece
         removePiece(middleRow, middleCol)
         println(s"Removed piece at ($middleRow, $middleCol)")
+        updateRemainingPieces(capturedPiece.color)
       }
     } else {
       println("Invalid move: Standard capture requires a leap of 2 rows")
@@ -88,12 +90,35 @@ class Board {
 
   def handleKingCapture(startRow: Int, startCol: Int, endRow: Int, endCol: Int, occupiedSpaces: List[(Int, Int)]): Unit = {
     // Remove the pieces at the occupied spaces
+    // Remove the pieces at the occupied spaces
     occupiedSpaces.foreach { case (row, col) =>
-      removePiece(row, col)
-    }
-
+      getPiece(row, col).foreach { capturedPiece =>
+        removePiece(row, col)
+        updateRemainingPieces(capturedPiece.color)
+      }
     // Add the occupied spaces to the captured pieces list
     capturedPieces ++= occupiedSpaces
+    }
+  }
+
+  private def updateRemainingPieces(capturedColor: PieceColor): Unit = {
+    if (MainApp.getSelectedColor().toLowerCase() == "white") {
+      if (capturedColor == PieceColor.White) {
+        remainingWhitePieces -= 1
+        println(s"Player 1 remaining pieces: $remainingWhitePieces")
+      } else {
+        remainingBlackPieces -= 1
+        println(s"Player 2 remaining pieces: $remainingBlackPieces")
+      }
+    } else if (MainApp.getSelectedColor().toLowerCase() == "black") {
+      if (capturedColor == PieceColor.Black) {
+        remainingBlackPieces -= 1
+        println(s"Player 1 remaining pieces: $remainingBlackPieces")
+      } else {
+        remainingWhitePieces -= 1
+        println(s"Player 2 remaining pieces: $remainingWhitePieces")
+      }
+    }
   }
 
   def winner(): Option[Player] = {
