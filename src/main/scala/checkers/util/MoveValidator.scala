@@ -116,7 +116,10 @@ object MoveValidator {
         (startRow + 2 * rowOffset, startCol + 2 * colOffset) // Jump move
       ).filter { case (endRow, endCol) =>
         isWithinBounds(endRow, endCol) &&
-          ((pieceColor == "White" && endRow < startRow) || (pieceColor == "Black" && endRow > startRow)) &&
+          ((pieceColor == "White" && MainApp.getSelectedColor() == "White" && endRow < startRow) ||
+          (pieceColor == "Black" && MainApp.getSelectedColor() == "White" && endRow > startRow) ||
+          (pieceColor == "White" && MainApp.getSelectedColor() == "Black" && endRow > startRow) ||
+          (pieceColor == "Black" && MainApp.getSelectedColor() == "Black" && endRow < startRow)) &&
           isValidStandardMove(startRow, startCol, endRow, endCol, board, pieceColor, currentTurn, isKing = false)
       }
     }
