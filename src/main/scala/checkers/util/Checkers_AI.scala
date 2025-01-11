@@ -1,14 +1,16 @@
 package checkers.util
 
 import checkers.model.{Board, PieceColor}
+import scala.util.Random
 
 class Checkers_AI(board: Board, player2Color: PieceColor.Value, player1Color: PieceColor.Value) {
 
   def getBestMove(): ((Int, Int), (Int, Int)) = {
-    val depth = 3
+    val depth = 7
     val moves = generateAllMoves(player2Color)
     var bestMove: ((Int, Int), (Int, Int)) = null
     var bestValue = Int.MinValue
+    val random = new Random()
 
     for (move <- moves) {
       val (start, end) = move
@@ -17,7 +19,7 @@ class Checkers_AI(board: Board, player2Color: PieceColor.Value, player1Color: Pi
       val moveValue = minimax(board, depth - 1, Int.MinValue, Int.MaxValue, maximizingPlayer = false)
       board.movePiece(end._1, end._2, start._1, start._2) // Undo move
 
-      if (moveValue > bestValue) {
+      if (moveValue > bestValue || (moveValue == bestValue && random.nextBoolean())) {
         bestValue = moveValue
         bestMove = move
       }
