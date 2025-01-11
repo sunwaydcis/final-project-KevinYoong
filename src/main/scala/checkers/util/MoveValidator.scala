@@ -56,23 +56,38 @@ object MoveValidator {
 
       var row = startRow + rowStep
       var col = startCol + colStep
+      var encounteredPiece = false
+      var adjacentOpponentPiece = false
 
       while (row != endRow && col != endCol) {
         board.getPiece(row, col) match {
           case Some(piece) =>
             // If an encountered piece is of the same color, the move is invalid
             if (piece.color.toString == pieceColor) {
-              println(s"Invalid move: Encountered own piece at ($row, $col)")
               return false
             }
+            // If an encountered piece is of the opposite color and we have already encountered a piece
+            if (encounteredPiece) {
+              // Check if the pieces are adjacent
+              if (adjacentOpponentPiece) {
+                return false
+              }
+              adjacentOpponentPiece = true
+            }
+            encounteredPiece = true
           case None =>
-          // Continue if no piece is encountered
+            // If an empty space is encountered after a piece, reset the adjacent opponent piece flag
+            adjacentOpponentPiece = false
         }
         row += rowStep
         col += colStep
       }
       // Ensure the destination is empty
-      board.getPiece(endRow, endCol).isEmpty
+      if (board.getPiece(endRow, endCol).isEmpty) {
+        true
+      } else {
+        false
+      }
     } else {
       false
     }
