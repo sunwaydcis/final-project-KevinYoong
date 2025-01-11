@@ -151,6 +151,64 @@ object MoveValidator {
     validMoves
   }
 
+  def findCaptureMoves(startRow: Int, startCol: Int, board: Board, pieceColor: String, isKing: Boolean): List[List[(Int, Int)]] = {
+    val directions = if (isKing) {
+      List((-1, -1), (-1, 1), (1, -1), (1, 1)) // Diagonal directions for kings
+    } else if (MainApp.getSelectedColor() == "White") {
+      if (pieceColor == "White") {
+        List((-1, -1), (-1, 1)) // White pieces move upwards
+      } else {
+        List((1, -1), (1, 1)) // Black pieces move downwards
+      }
+    } else {
+      if (pieceColor == "White") {
+        List((1, -1), (1, 1)) // White pieces move downwards
+      } else {
+      }
+    }
+    
+    val capturePaths = scala.collection.mutable.ListBuffer[List[(Int, Int)]]()
+
+    def exploreCapturePath(currentRow: Int, currentCol: Int, visited: Set[(Int, Int)], currentPath: List[(Int, Int)]): Unit = {
+      var canCaptureFurther = false
+
+      for ((rowStep, colStep) <- directions) {
+        var midRow = currentRow + rowStep
+        var midCol = currentCol + colStep
+        var endRow = currentRow + 2 * rowStep
+        var endCol = currentCol + 2 * colStep
+
+        while (isWithinBounds(endRow, endCol) && !visited.contains((midRow, midCol)) && !visited.contains((endRow, endCol))) {
+          board.getPiece(midRow, midCol) match {
+            case Some(midPiece) if midPiece.color != PieceColor.withName(pieceColor) =>
+              if (board.getPiece(endRow, endCol).isEmpty) {
+                canCaptureFurther = true
+                val newVisited = visited + ((midRow, midCol), (endRow, endCol))
+                exploreCapturePath(
+                  endRow,
+                  endCol,
+                  newVisited,
+                  currentPath :+ (endRow, endCol)
+                )
+              }
+            case _ => // No capture possible in this direction
+          }
+          midRow += rowStep
+          midCol += colStep
+          endRow += 2 * rowStep
+          endCol += 2 * colStep
+        }
+      }
+      // If no further captures, add the current path
+      if (!canCaptureFurther && currentPath.nonEmpty) {
+        capturePaths += currentPath
+      }
+    }
+    // Start exploring from the initial position
+    exploreCapturePath(startRow, startCol, Set((startRow, startCol)), List())
+    capturePaths.toList
+  }
+
   private def isWithinBounds(row: Int, col: Int): Boolean = {
     row >= 0 && row < 8 && col >= 0 && col < 8
   }

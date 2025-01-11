@@ -20,6 +20,7 @@ class CheckersBoardController {
 
   @FXML private var boardGrid: GridPane = _
   @FXML private var pauseButton: Button = _
+  @FXML private var skipButton: Button = _
   private var selectedPiece: Piece = _
   private var selectedPieceRow: Int = _
   private var selectedPieceCol: Int = _
@@ -32,6 +33,7 @@ class CheckersBoardController {
   private var player1: Player = _
   private var player2: Player = _
   private var aiTurnTaken: Boolean = false
+  private var checkturn: Int = 0
 
   private def setSelectedColor(color: String): Unit = {
     selectedColor = MainApp.getSelectedColor()
@@ -109,6 +111,8 @@ class CheckersBoardController {
         })
       case _ =>
     }
+    skipButton.setOnMouseClicked((event: MouseEvent) => handleSkipButton())
+    skipButton.setDisable(true) // Disable the skip button initially
   }
 
   private def initializePieces(): Unit = {
@@ -137,13 +141,7 @@ class CheckersBoardController {
     val col = Option(GridPane.getColumnIndex(button)).map(_.intValue()).getOrElse(0)
 
     // Clear all previous highlights
-    boardGrid.getChildren.forEach {
-      case btn: Button =>
-        if (btn.getGraphic.isInstanceOf[Circle]) {
-          btn.setGraphic(null)
-        }
-      case _ =>
-    }
+    clearHighlights()
 
     // Get the piece associated with the clicked button
     pieceMap.get(button).flatMap { case (r, c) => board.getPiece(r, c) }.foreach { piece =>
@@ -173,10 +171,35 @@ class CheckersBoardController {
         val rowDiff = Math.abs(row - selectedPieceRow)
         if (rowDiff == 2) {
           board.handleStandardCapture(selectedPieceRow, selectedPieceCol, row, col, updateBoardVisuals)
+          val furtherCaptures = MoveValidator.findCaptureMoves(row, col, board, selectedPiece.color.toString, isKing = false)
+          if (furtherCaptures.nonEmpty) {
+            checkturn += 1
+            selectedPieceRow = row
+            selectedPieceCol = col
+            selectedPiece = board.getPiece(row, col).get // Automatically select the piece that can capture further
+            println(s"Further captures available for piece at ($selectedPieceRow, $selectedPieceCol)")
+            skipButton.setDisable(false) // Enable the skip button when further captures are available
+            // If checkturn is greater than 0, only allow moving the selected piece
+            if (checkturn > 0 && (row != selectedPieceRow || col != selectedPieceCol)) {
+              println("You must continue moving the selected piece")
+              return
+            }
+            // Highlight valid moves for the newly selected piece
+            val validMoves = MoveValidator.getValidStandardMoves(selectedPieceRow, selectedPieceCol, board, selectedPiece.color.toString, currentPlayer.color)
+            validMoves.foreach { case (validRow, validCol) =>
+              val validButton = boardGrid.getChildren
+                .filtered(node => Option(GridPane.getRowIndex(node)).map(_.intValue()).getOrElse(0) == validRow && Option(GridPane.getColumnIndex(node)).map(_.intValue()).getOrElse(0) == validCol)
+                .get(0).asInstanceOf[Button]
+              highlightValidMove(validButton)
+            }
+            return
+          }
         } else {
           updateBoardVisuals(selectedPieceRow, selectedPieceCol, row, col)
         }
         selectedPiece = null // Reset the selection to allow new selections
+        checkturn = 0
+        skipButton.setDisable(true) // Disable the skip button when the turn is switched
         switchTurn()
       } else {
         println("Invalid move or destination occupied")
@@ -192,13 +215,7 @@ class CheckersBoardController {
     val col = Option(GridPane.getColumnIndex(button)).map(_.intValue()).getOrElse(0)
 
     // Clear all previous highlights
-    boardGrid.getChildren.forEach {
-      case btn: Button =>
-        if (btn.getGraphic.isInstanceOf[Circle]) {
-          btn.setGraphic(null)
-        }
-      case _ =>
-    }
+    clearHighlights()
 
     // Get the piece associated with the clicked button
     pieceMap.get(button).flatMap { case (r, c) => board.getPiece(r, c) }.foreach { piece =>
@@ -280,6 +297,16 @@ class CheckersBoardController {
     button.setGraphic(circle)
   }
 
+  def clearHighlights(): Unit = {
+    boardGrid.getChildren.forEach {
+      case btn: Button =>
+        if (btn.getGraphic.isInstanceOf[Circle]) {
+          btn.setGraphic(null)
+        }
+      case _ =>
+    }
+  }
+
   private def switchTurn(): Unit = {
     currentPlayer.isTurn = false
     currentPlayer = if (currentPlayer == player1) player2 else player1
@@ -337,6 +364,18 @@ class CheckersBoardController {
         pieceMap.remove(capturedButton)
         println(s"Removed captured piece at row: $capturedRow, col: $capturedCol")
       }
+    }
+  }
+
+  @FXML
+  private def handleSkipButton(): Unit = {
+    if (checkturn > 0) {
+      checkturn = 0
+      selectedPiece = null
+      clearHighlights()
+      switchTurn()
+    } else {
+      println("Cannot skip turn yet")
     }
   }
 
