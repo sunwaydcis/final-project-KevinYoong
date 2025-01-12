@@ -122,10 +122,14 @@ class Board {
   }
 
   def winner(): Option[Player] = {
-    if (player1.remainingPieces == 0) {
-      Some(player2)
-    } else if (player2.remainingPieces == 0) {
+    if (MainApp.getSelectedColor() == "White" && remainingBlackPieces == 0) {
       Some(player1)
+    } else if (MainApp.getSelectedColor() == "Black" && remainingWhitePieces == 0) {
+      Some(player1)
+    } else if (MainApp.getSelectedColor() == "White" && remainingWhitePieces == 0) {
+      Some(player2)
+    } else if (MainApp.getSelectedColor() == "Black" && remainingBlackPieces == 0) {
+      Some(player2)
     } else {
       None
     }
