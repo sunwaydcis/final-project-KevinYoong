@@ -16,12 +16,7 @@ class Checkers_AI(board: Board, player2Color: PieceColor.Value, player1Color: Pi
     val random = new Random()
 
     for (move <- moves) {
-      val (start, end) = move
-      val piece = board.getPiece(start._1, start._2).get
-      board.movePiece(start._1, start._2, end._1, end._2)
-      val moveValue = minimax(board, depth - 1, Int.MinValue, Int.MaxValue, maximizingPlayer = false)
-      board.movePiece(end._1, end._2, start._1, start._2) // Undo move
-
+      val moveValue = evaluateMove(move, depth - 1, Int.MinValue, Int.MaxValue, maximizingPlayer = false)
       if (moveValue > bestValue || (moveValue == bestValue && random.nextBoolean())) {
         bestValue = moveValue
         bestMove = move
@@ -41,11 +36,7 @@ class Checkers_AI(board: Board, player2Color: PieceColor.Value, player1Color: Pi
       var alphaVar = alpha
 
       for (move <- moves) {
-        val (start, end) = move
-        val piece = board.getPiece(start._1, start._2).get
-        board.movePiece(start._1, start._2, end._1, end._2)
-        val eval = minimax(board, depth - 1, alphaVar, beta, maximizingPlayer = false)
-        board.movePiece(end._1, end._2, start._1, start._2) // Undo move
+        val eval = evaluateMove(move, depth - 1, alphaVar, beta, maximizingPlayer = false)
         maxEval = Math.max(maxEval, eval)
         alphaVar = Math.max(alphaVar, eval)
         if (beta <= alphaVar) {
@@ -59,11 +50,7 @@ class Checkers_AI(board: Board, player2Color: PieceColor.Value, player1Color: Pi
       var betaVar = beta
 
       for (move <- moves) {
-        val (start, end) = move
-        val piece = board.getPiece(start._1, start._2).get
-        board.movePiece(start._1, start._2, end._1, end._2)
-        val eval = minimax(board, depth - 1, alpha, betaVar, maximizingPlayer = true)
-        board.movePiece(end._1, end._2, start._1, start._2) // Undo move
+        val eval = evaluateMove(move, depth - 1, alpha, betaVar, maximizingPlayer = true)
         minEval = Math.min(minEval, eval)
         betaVar = Math.min(betaVar, eval)
         if (betaVar <= alpha) {
@@ -74,8 +61,16 @@ class Checkers_AI(board: Board, player2Color: PieceColor.Value, player1Color: Pi
     }
   }
 
+  private def evaluateMove(move: ((Int, Int), (Int, Int)), depth: Int, alpha: Int, beta: Int, maximizingPlayer: Boolean): Int = {
+    val (start, end) = move
+    val piece = board.getPiece(start._1, start._2).get
+    board.movePiece(start._1, start._2, end._1, end._2)
+    val moveValue = minimax(board, depth, alpha, beta, maximizingPlayer)
+    board.movePiece(end._1, end._2, start._1, start._2) // Undo move
+    moveValue
+  }
+
   private def evaluateBoard(board: Board): Int = {
-    // Simple evaluation function: difference in piece count
     board.remainingBlackPieces - board.remainingWhitePieces
   }
 

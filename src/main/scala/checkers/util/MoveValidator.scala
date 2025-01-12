@@ -5,7 +5,7 @@ import checkers.model.{Piece, Board, PieceColor}
 
 object MoveValidator {
 
-  // Reference for finding standard piece's valid move 
+  // Reference for finding standard piece's valid move
   // Code inspired by ChatGPT
   def isValidStandardMove(startRow: Int, startCol: Int, endRow: Int, endCol: Int, board: Board, pieceColor: String, currentTurn: PieceColor.Value, isKing: Boolean): Boolean = {
     if (!isWithinBounds(endRow, endCol)) {
@@ -30,14 +30,12 @@ object MoveValidator {
 
     if ((isForwardMove || isKing) && rowDiff == colDiff) {
       if (rowDiff == 1) {
-        val isEmpty = board.getPiece(endRow, endCol).isEmpty
-        isEmpty
+        isMoveValid(endRow, endCol, board)
       } else if (rowDiff == 2) {
         val middleRow = (startRow + endRow) / 2
         val middleCol = (startCol + endCol) / 2
         val canCapture = board.getPiece(middleRow, middleCol).exists(_.color != PieceColor.withName(pieceColor))
-        val isEmpty = board.getPiece(endRow, endCol).isEmpty
-        canCapture && isEmpty
+        canCapture && isMoveValid(endRow, endCol, board)
       } else {
         println(s"Invalid move: not a valid diagonal move for ($startRow, $startCol) to ($endRow, $endCol)")
         false
@@ -91,7 +89,7 @@ object MoveValidator {
         col += colStep
       }
       // Ensure the destination is empty
-      if (board.getPiece(endRow, endCol).isEmpty) {
+      if (isMoveValid(endRow, endCol, board)) {
         (true, occupiedPieces.toList)
       } else {
         (false, List())
@@ -188,13 +186,13 @@ object MoveValidator {
             case Some(midPiece) if midPiece.color != PieceColor.withName(pieceColor) =>
               if (isKing) {
                 val (isValid, _) = MoveValidator.isValidKingMove(currentRow, currentCol, endRow, endCol, board, pieceColor, PieceColor.withName(pieceColor))
-                if (isValid && board.getPiece(endRow, endCol).isEmpty) {
+                if (isValid && isMoveValid(endRow, endCol, board)) {
                   canCaptureFurther = true
                   val newVisited = visited + ((midRow, midCol), (endRow, endCol))
                   exploreCapturePath(endRow, endCol, newVisited, currentPath :+ (endRow, endCol))
                 }
               } else {
-                if (board.getPiece(endRow, endCol).isEmpty) {
+                if (isMoveValid(endRow, endCol, board)) {
                   canCaptureFurther = true
                   val newVisited = visited + ((midRow, midCol), (endRow, endCol))
                   exploreCapturePath(endRow, endCol, newVisited, currentPath :+ (endRow, endCol))
@@ -220,5 +218,9 @@ object MoveValidator {
 
   private def isWithinBounds(row: Int, col: Int): Boolean = {
     row >= 0 && row < 8 && col >= 0 && col < 8
+  }
+
+  private def isMoveValid(row: Int, col: Int, board: Board): Boolean = {
+    board.getPiece(row, col).isEmpty
   }
 }
