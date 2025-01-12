@@ -1,6 +1,5 @@
 package checkers
 
-import checkers.view.VictoryDialogController
 import javafx.fxml.FXMLLoader
 import javafx.scene.Parent
 import scalafx.Includes.*
@@ -71,31 +70,15 @@ object MainApp extends JFXApp3 {
       throw new RuntimeException("CheckersBoard.fxml not found")
     }
     val loader = new FXMLLoader(resource)
-    val root3 = loader.load[Parent]() // Load the FXML file and get the root node
+    val root = loader.load[Parent]() // Load the FXML file and get the root node
     val controller = loader.getController[checkers.view.CheckersBoardController]
     controller.initializeGame(isAI)
-    stage.setScene(new Scene(root3))
+    stage.setScene(new Scene(root))
     stage.setTitle("Checkers Game")
     stage.show()
   }
 
   def isGameAI(): Boolean = {
     isAI
-  }
-
-  def showVictoryDialog(winnerName: String, owner: Stage): Unit = {
-    val resource = getClass.getResource("/view/VictoryDialog.fxml")
-    if (resource == null) {
-      throw new RuntimeException("VictoryDialog.fxml not found")
-    }
-    val loader = new FXMLLoader(resource)
-    val root = loader.load[Parent]()
-    val controller = loader.getController[VictoryDialogController]
-    controller.setWinner(winnerName)
-    val dialog = new Stage()
-    dialog.initOwner(owner)
-    controller.dialogStage = dialog
-    dialog.setScene(new Scene(root))
-    dialog.showAndWait()
   }
 }

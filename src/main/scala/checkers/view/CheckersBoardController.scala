@@ -1,7 +1,6 @@
 package checkers.view
 
 import checkers.MainApp
-import checkers.MainApp.stage
 import checkers.model.{Board, Piece, PieceColor, Player}
 import checkers.util.{Checkers_AI, MoveValidator}
 import javafx.application.Platform
@@ -340,10 +339,17 @@ class CheckersBoardController {
     currentPlayer = if (currentPlayer == player1) player2 else player1
     currentPlayer.isTurn = true
     println(s"Switched turn. It's now ${currentPlayer.name}'s turn")
-    checkForLoss()
 
     if (isAI && currentPlayer == player2) {
       handleAITurn()
+    }
+  }
+
+  private def checkForLoss(): Unit = {
+    if (player1.remainingPieces == 0) {
+      println(s"${player1.name} has lost!")
+    } else if (player2.remainingPieces == 0) {
+      println(s"${player2.name} has lost!")
     }
   }
 
@@ -397,15 +403,6 @@ class CheckersBoardController {
       switchTurn()
     } else {
       println("Cannot skip turn yet")
-    }
-  }
-
-  private def checkForLoss(): Unit = {
-    board.winner() match {
-      case Some(winner) =>
-        println(s"${winner.name} has won!")
-        MainApp.showVictoryDialog(winner.name, stage)
-      case None =>
     }
   }
 
