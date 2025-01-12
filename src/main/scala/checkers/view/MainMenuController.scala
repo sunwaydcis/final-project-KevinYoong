@@ -1,12 +1,10 @@
 package checkers.view
 
 import checkers.MainApp
-import javafx.fxml.{FXML, FXMLLoader}
+import javafx.fxml.FXML
 import javafx.scene.control.Button
-import javafx.scene.layout.{BorderPane, GridPane, StackPane, VBox}
+import javafx.scene.layout.StackPane
 import javafx.scene.media.{Media, MediaPlayer, MediaView}
-import javafx.scene.{Parent, Scene}
-import javafx.stage.{Modality, Stage}
 import scalafx.application.Platform
 
 class MainMenuController {
@@ -24,6 +22,8 @@ class MainMenuController {
     setupMediaPlayer()
   }
 
+  // Reference for setting up mediaView
+  // Inspired by ChatGPT and GitHub Copilot
   private def setupMediaPlayer(): Unit = {
     if (mediaView != null) {
       try {
@@ -46,8 +46,9 @@ class MainMenuController {
     }
   }
 
+  // User will play against AI
   @FXML
-  def handlePlayAgainstAI(): Unit = {
+  private def handlePlayAgainstAI(): Unit = {
     val okClicked = MainApp.showColourSelectionDialog()
     if (okClicked) {
       // Logic to move to the game scene
@@ -59,9 +60,10 @@ class MainMenuController {
       println("Color selection canceled, staying in main menu")
     }
   }
-  
+
+  // User will play against another player
   @FXML
-  def handlePlayAgainstFriend(): Unit = {
+  private def handlePlayAgainstFriend(): Unit = {
     val okClicked = MainApp.showColourSelectionDialog()
     if (okClicked) {
       // Logic to move to the game scene without AI
@@ -74,8 +76,9 @@ class MainMenuController {
     }
   }
 
+  // Close the game
   @FXML
-  def handleQuitGame(): Unit = {
+  private def handleQuitGame(): Unit = {
     println("Quit Game button clicked")
     Platform.exit()
   }

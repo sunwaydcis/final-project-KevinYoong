@@ -23,16 +23,19 @@ class VictoryDialogController {
     mainMenuButton.setOnAction(_ => handleMainMenu(mainMenuButton))
   }
 
+  // Sets the name of the winner
   def setWinner(playerName: String): Unit = {
     winnerName.set(s"$playerName is the winner")
   }
-  
-  def handleRestartGame(button: Button): Unit = {
+
+  // Restarts the game
+  private def handleRestartGame(button: Button): Unit = {
     dialogStage.close()
     MainApp.showCheckersBoard(MainApp.isGameAI())
   }
-  
-  def handleMainMenu(button: Button): Unit = {
+
+  // Returns the user back to main menu
+  private def handleMainMenu(button: Button): Unit = {
     dialogStage.close()
     MainApp.start()
   }

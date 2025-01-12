@@ -3,10 +3,8 @@ package checkers.view
 import javafx.fxml.FXML
 import javafx.scene.control.Alert.AlertType
 import javafx.scene.control.{Alert, Button}
-import javafx.stage.Stage
 import javafx.scene.image.{Image, ImageView}
-import javafx.fxml.FXMLLoader
-import javafx.scene.Parent
+import javafx.stage.Stage
 
 class ColourSelectionDialogController {
 

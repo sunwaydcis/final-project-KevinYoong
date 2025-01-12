@@ -3,6 +3,9 @@ package checkers.util
 import checkers.model.{Board, PieceColor}
 import scala.util.Random
 
+// References for implementing the checkers AI using the minimax algorithm:
+// https://github.com/techwithtim/Python-Checkers-AI/blob/master/minimax/algorithm.py
+// https://www.youtube.com/watch?v=RjdrFHEgV2o
 class Checkers_AI(board: Board, player2Color: PieceColor.Value, player1Color: PieceColor.Value) {
 
   def getBestMove(): ((Int, Int), (Int, Int)) = {

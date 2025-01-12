@@ -69,6 +69,8 @@ class Board {
     board.remove((row, col))
   }
 
+  // Implements capture by checking if it is a leap 
+  // If it is then remove the piece that is in the middle of the old and new positions
   def handleStandardCapture(startRow: Int, startCol: Int, endRow: Int, endCol: Int, updateBoardVisuals: (Int, Int, Int, Int) => Unit): Unit = {
     val rowDiff = Math.abs(endRow - startRow)
     if (rowDiff == 2) { // Check if this is a leap
@@ -88,19 +90,20 @@ class Board {
     }
   }
 
+  // Record the pieces that were along the path the king piece travels
+  // Remove those pieces 
   def handleKingCapture(startRow: Int, startCol: Int, endRow: Int, endCol: Int, occupiedSpaces: List[(Int, Int)]): Unit = {
-    // Remove the pieces at the occupied spaces
-    // Remove the pieces at the occupied spaces
     occupiedSpaces.foreach { case (row, col) =>
       getPiece(row, col).foreach { capturedPiece =>
         removePiece(row, col)
         updateRemainingPieces(capturedPiece.color)
       }
-    // Add the occupied spaces to the captured pieces list
-    capturedPieces ++= occupiedSpaces
+      // Add the occupied spaces to the captured pieces list
+      capturedPieces ++= occupiedSpaces
     }
   }
 
+  //Update remaining pieces of each player
   private def updateRemainingPieces(capturedColor: PieceColor): Unit = {
     if (MainApp.getSelectedColor().toLowerCase() == "white") {
       if (capturedColor == PieceColor.White) {
@@ -121,6 +124,7 @@ class Board {
     }
   }
 
+  // Determine the winner 
   def winner(): Option[Player] = {
     if (player1.remainingPieces == 0) {
       Some(player2)

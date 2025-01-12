@@ -135,6 +135,9 @@ class CheckersBoardController {
     }
   }
 
+  // Reference
+  // ChatGPT helped with setting up MouseEvents for the buttons on the board
+  // Method to handle the movement of standard pieces
   private def handleStandardPieceMovement(event: MouseEvent): Unit = {
     val button = event.getSource.asInstanceOf[Button]
     val row = Option(GridPane.getRowIndex(button)).map(_.intValue()).getOrElse(0)
@@ -164,13 +167,16 @@ class CheckersBoardController {
       }
     }
 
-    // If no valid piece was selected but a piece is already selected, attempt to move it
+    // Selecting a empty space to move the piece
     if (selectedPiece != null) {
       println(s"Attempting to move ${selectedPiece.color} piece from ($selectedPieceRow, $selectedPieceCol) to ($row, $col)")
+      // Checks if move is valid by calling isValidStandrdMove from MoveValidator
       if (MoveValidator.isValidStandardMove(selectedPieceRow, selectedPieceCol, row, col, board, selectedPiece.color.toString, currentPlayer.color, selectedPiece.isKing)) {
         val rowDiff = Math.abs(row - selectedPieceRow)
+        // If the row difference is 2, a capture move is being made
         if (rowDiff == 2) {
           board.handleStandardCapture(selectedPieceRow, selectedPieceCol, row, col, updateBoardVisuals)
+          // Check for further captures using findCaptureMoves
           val furtherCaptures = MoveValidator.findCaptureMoves(row, col, board, selectedPiece.color.toString, isKing = false)
           if (furtherCaptures.nonEmpty) {
             checkturn += 1
@@ -209,6 +215,7 @@ class CheckersBoardController {
     }
   }
 
+  // Method for handling king piece movement
   private def handleKingPieceMovement(event: MouseEvent): Unit = {
     val button = event.getSource.asInstanceOf[Button]
     val row = Option(GridPane.getRowIndex(button)).map(_.intValue()).getOrElse(0)
@@ -238,9 +245,10 @@ class CheckersBoardController {
       }
     }
 
-    // If no valid piece was selected but a piece is already selected, attempt to move it
+    // If user clicks on an empty spot, attempt to move the piece
     if (selectedPiece != null && selectedPiece.isKing) {
       println(s"Attempting to move ${selectedPiece.color} king piece from ($selectedPieceRow, $selectedPieceCol) to ($row, $col)")
+      // Checks if move is valid by calling isValidKingMove from MoveValidator
       val (isValid, occupiedSpaces) = MoveValidator.isValidKingMove(selectedPieceRow, selectedPieceCol, row, col, board, selectedPiece.color.toString, currentPlayer.color)
       if (isValid) {
         println(s"Occupied spaces during the move: ${occupiedSpaces.mkString(", ")}")
@@ -283,6 +291,9 @@ class CheckersBoardController {
     }
   }
 
+  // Method to handle the AI turn
+  // Reference for the 1 second delay when AI takes their turn
+  // https://www.javatpoint.com/scala-thread-methods
   private def handleAITurn(): Unit = {
     new Thread(() => {
       try {
@@ -290,6 +301,10 @@ class CheckersBoardController {
       } catch {
         case e: InterruptedException => e.printStackTrace()
       }
+      // Reference for PLatform.runLater()
+      // https://stackoverflow.com/questions/13784333/platform-runlater-and-task-in-javafx
+      // https://docs.oracle.com/javafx/2/api/javafx/application/Platform.html#:~:text=runLater,-public%20static%20void&text=lang.Runnable%20runnable)-,Run%20the%20specified%20Runnable%20on%20the%20JavaFX%20Application%20Thread%20at,the%20order%20they%20are%20posted.
+      // Github Copilot
       Platform.runLater(() => {
         val bestMove = ai.getBestMove()
         if (bestMove != null) {
@@ -318,12 +333,14 @@ class CheckersBoardController {
     }).start()
   }
 
+  // Highlight valid moves on the board by adding a white circle
   private def highlightValidMove(button: Button): Unit = {
     val circle = new Circle(5, Color.WHITE)
     circle.setMouseTransparent(true) // Make sure the circle does not interfere with button clicks
     button.setGraphic(circle)
   }
 
+  // Clear all highlights on the board
   def clearHighlights(): Unit = {
     boardGrid.getChildren.forEach {
       case btn: Button =>
@@ -334,6 +351,7 @@ class CheckersBoardController {
     }
   }
 
+  // Switch the turn to the next player
   private def switchTurn(): Unit = {
     currentPlayer.isTurn = false
     currentPlayer = if (currentPlayer == player1) player2 else player1
@@ -345,6 +363,8 @@ class CheckersBoardController {
     }
   }
 
+  // Checks if there is a winner
+  // If there is show the victory dialog
   private def checkForLoss(): Unit = {
     if (MainApp.getSelectedColor() == "White") {
       if (board.remainingWhitePieces == 0) {
@@ -406,6 +426,7 @@ class CheckersBoardController {
     }
   }
 
+  // Clicking on skip button switches turn to next player
   @FXML
   private def handleSkipButton(): Unit = {
     if (checkturn > 0) {
@@ -418,6 +439,8 @@ class CheckersBoardController {
     }
   }
 
+  // Open the pause menu
+  // Shows the pause screen dialog
   @FXML
   private def openPauseMenu(): Unit = {
     val resource = getClass.getResource("/view/PauseScreen.fxml")

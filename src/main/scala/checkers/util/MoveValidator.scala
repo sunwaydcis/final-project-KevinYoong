@@ -5,6 +5,8 @@ import checkers.model.{Piece, Board, PieceColor}
 
 object MoveValidator {
 
+  // Reference for finding standard piece's valid move 
+  // Code inspired by ChatGPT
   def isValidStandardMove(startRow: Int, startCol: Int, endRow: Int, endCol: Int, board: Board, pieceColor: String, currentTurn: PieceColor.Value, isKing: Boolean): Boolean = {
     if (!isWithinBounds(endRow, endCol)) {
       println(s"Move out of bounds: ($endRow, $endCol)")
@@ -151,6 +153,8 @@ object MoveValidator {
     validMoves
   }
 
+  // Reference for finding further capture moves
+  // Code inspired by ChatGPT
   def findCaptureMoves(startRow: Int, startCol: Int, board: Board, pieceColor: String, isKing: Boolean): List[List[(Int, Int)]] = {
     val directions = if (isKing) {
       List((-1, -1), (-1, 1), (1, -1), (1, 1)) // Diagonal directions for kings

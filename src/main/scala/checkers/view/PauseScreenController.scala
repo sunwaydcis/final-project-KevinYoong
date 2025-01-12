@@ -18,17 +18,21 @@ class PauseScreenController {
     exitGameButton.setOnAction(_ => handleQuit())
   }
   
+  // Resumes game 
   @FXML
   private def handleResume(): Unit = {
     dialogStage.close()
   }
 
+  // Restarts the game 
+  // Pieces are back in their initial positions
   @FXML
   private def handleRestart(): Unit = {
     dialogStage.close()
     MainApp.showCheckersBoard(MainApp.isGameAI())
   }
 
+  // Sends the user back to main menu
   @FXML
   private def handleQuit(): Unit = {
     dialogStage.close()
