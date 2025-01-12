@@ -78,6 +78,26 @@ object MainApp extends JFXApp3 {
     stage.show()
   }
 
+  def showVictoryDialog(winnerName: String): Unit = {
+      // Load VictoryDialog.fxml
+      val resource = getClass.getResource("/view/VictoryDialog.fxml")
+      if (resource == null) {
+        throw new RuntimeException("VictoryDialog.fxml not found")
+      }
+      val loader = new FXMLLoader(resource)
+      val root = loader.load[Parent]()
+      val controller = loader.getController[checkers.view.VictoryDialogController]
+      controller.setWinner(winnerName)
+      // Set up the dialog stage
+      val dialogStage = new Stage() {
+        title = "Victory Dialog"
+        initModality(Modality.ApplicationModal)
+        scene = new Scene(root)
+      }
+      controller.dialogStage = dialogStage
+      dialogStage.showAndWait()
+    }
+
   def isGameAI(): Boolean = {
     isAI
   }

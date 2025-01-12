@@ -339,17 +339,29 @@ class CheckersBoardController {
     currentPlayer = if (currentPlayer == player1) player2 else player1
     currentPlayer.isTurn = true
     println(s"Switched turn. It's now ${currentPlayer.name}'s turn")
-
+    checkForLoss()
     if (isAI && currentPlayer == player2) {
       handleAITurn()
     }
   }
 
   private def checkForLoss(): Unit = {
-    if (player1.remainingPieces == 0) {
-      println(s"${player1.name} has lost!")
-    } else if (player2.remainingPieces == 0) {
-      println(s"${player2.name} has lost!")
+    if (MainApp.getSelectedColor() == "White") {
+      if (board.remainingWhitePieces == 0) {
+        println(s"${player1.name} has lost!")
+        MainApp.showVictoryDialog(player2.name)
+      } else if (board.remainingBlackPieces == 0) {
+        println(s"${player2.name} has lost!")
+        MainApp.showVictoryDialog(player1.name)
+      }
+    } else if (MainApp.getSelectedColor() == "Black") {
+      if (board.remainingBlackPieces == 0) {
+        println(s"${player1.name} has lost!")
+        MainApp.showVictoryDialog(player2.name)
+      } else if (board.remainingWhitePieces == 0) {
+        println(s"${player2.name} has lost!")
+        MainApp.showVictoryDialog(player1.name)
+      }
     }
   }
 
